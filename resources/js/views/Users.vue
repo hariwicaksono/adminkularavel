@@ -1,0 +1,243 @@
+<template>
+    <v-container fluid>
+        <h1 class="mb-3">{{ $t('users') }}</h1>
+        <v-card>
+            <v-card-title>
+                <v-btn size="large" color="primary" @click="openForm()" class="mb-1"
+                    v-if="can('user.create')"><v-icon>mdi-plus</v-icon> {{ $t('add') }}</v-btn>
+            </v-card-title>
+            <v-data-table-server :items="users" :headers="headers" :items-length="total" :loading="loading" :page="page"
+                :items-per-page="perPage" @update:page="fetchUsers" @update:items-per-page="fetchUsers">
+                <template #top>
+                    <v-row>
+                        <v-col cols="12" md="3">
+                            <v-select v-model="roleFilter" label="Filter by Role" :items="allRoles" clearable
+                                @update:modelValue="fetchUsers" />
+                        </v-col>
+                        <v-col cols="12" md="3">
+                            <v-select v-model="statusFilter" label="Filter by Status" :items="[
+                                { title: 'Aktif', value: 1 },
+                                { title: 'Nonaktif', value: 0 },
+                            ]" clearable @update:modelValue="fetchUsers" />
+                        </v-col>
+                        <v-col cols="12" md="6">
+                            <v-text-field v-model="search" label="Search" @keyup.enter="fetchUsers" />
+                        </v-col>
+                    </v-row>
+                </template>
+                <template #item.roles="{ item }">
+                    <!-- <v-chip v-for="role in item.roles" :key="role" color="primary" size="small" class="me-1">
+                        {{ role }}
+                    </v-chip> -->
+                    <v-select v-model="userRoleSelection[item.id]" :items="allRoles" label="Role" multiple
+                        density="compact" hide-details chips :loading="roleLoading[item.id] === true"
+                        :disabled="roleLoading[item.id] === true" @update:modelValue="(val) => updateRoles(item, val)"
+                        class="w-100" />
+                </template>
+                <template #item.status="{ item }">
+                    <v-switch :model-value="!!item.status" @update:modelValue="val => toggleStatus(item, val)"
+                        hide-details color="green" :disabled="item.is_superadmin == 1 || !can('user.update')" />
+                </template>
+                <template #item.updated_at="{ item }">
+                    {{ $t('created') }}: {{ $helpers.formatDate(item.updated_at) }}<br />
+                    {{ $t('updated') }}: {{ $helpers.formatDate(item.updated_at) }}
+                </template>
+                <template #item.actions="{ item }">
+                    <v-btn icon variant="text" @click="openForm(item)" class="mr-2" v-if="can('user.update')">
+                        <v-icon color="primary">mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn icon variant="text" @click="deleteUser(item.id)" :disabled="item.is_superadmin == 1"
+                        v-if="can('user.delete')">
+                        <v-icon color="red">mdi-delete</v-icon>
+                    </v-btn>
+                </template>
+            </v-data-table-server>
+        </v-card>
+
+        <!-- Dialog -->
+        <v-dialog v-model="dialog" width="500" scrollable>
+            <v-card>
+                <v-card-title class="d-flex justify-space-between align-center">
+                    {{ form.id ? $t('edit') : $t('add') }} User
+                    <v-btn variant="text" icon="mdi-close" @click="dialog = false"></v-btn>
+                </v-card-title>
+                <v-divider />
+                <v-card-text>
+                    <v-form @submit.prevent="saveUser">
+                        <v-text-field v-model="form.name" label="Name" :error-messages="errors.name" class="mb-2"
+                            required />
+                        <v-text-field v-model="form.email" label="Email" :error-messages="errors.email" class="mb-2"
+                            required />
+                        <v-text-field v-model="form.password" label="Password" :type="'password'"
+                            :error-messages="errors.password" class="mb-2" :required="!form.id" />
+                        <v-select v-model="form.status" label="Status" :items="[
+                            { title: 'Aktif', value: 1 },
+                            { title: 'Nonaktif', value: 0 }
+                        ]" :error-messages="errors.status" class="mb-2" required />
+
+                        <v-btn type="submit" color="primary" class="mr-2"
+                            :loading="saving"><v-icon>mdi-content-save</v-icon>
+                            {{ $t('save') }}</v-btn>
+                        <v-btn text @click="dialog = false">{{ $t('cancel') }}</v-btn>
+                    </v-form>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
+    </v-container>
+
+</template>
+
+<script setup>
+import { ref, onMounted, reactive } from 'vue'
+import api from '@/axios'
+import { useSnackbar } from '@/stores/snackbar'
+import { can } from '@/utils/auth'
+import { useI18n } from 'vue-i18n'
+
+const snackbar = useSnackbar()
+const errors = ref({})
+const users = ref([])
+const allRoles = ref([])
+const total = ref(0)
+const loading = ref(false)
+const page = ref(1)
+const perPage = ref(10)
+const search = ref('')
+const roleFilter = ref('')
+const statusFilter = ref('')
+const currentUser = ref({})
+const { t } = useI18n();
+
+const headers = [
+    { title: 'ID', key: 'id' },
+    { title: 'Name', key: 'name' },
+    { title: 'Email', key: 'email' },
+    { title: 'Role', key: 'roles' },
+    { title: 'Status', key: 'status' },
+    { title: t('date'), key: 'updated_at' },
+    { title: 'Actions', key: 'actions', sortable: false }
+]
+
+const userRoleSelection = reactive({}) // key: user.id, value: array of roles
+const roleLoading = reactive({}) // key: user.id, value: boolean
+
+// Saat data user dimuat
+const syncUserRoles = (users) => {
+    users.forEach(user => {
+        userRoleSelection[user.id] = [...user.roles]
+        roleLoading[user.id] = false // Reset loading state
+    })
+}
+
+const fetchUsers = async () => {
+    loading.value = true
+
+    const res = await api.get('/users', {
+        params: {
+            page: page.value,
+            per_page: perPage.value,
+            search: search.value,
+            role: roleFilter.value,
+            status: statusFilter.value,
+        }
+    })
+
+    // Tambahkan pemetaan untuk ambil nama role saja
+    users.value = res.data.data.map(user => ({
+        ...user,
+        roles: user.roles?.map(r => r.name) || [] // misalnya: ['admin', 'editor']
+    }))
+
+    total.value = res.data.total
+
+    syncUserRoles(users.value) // Sinkronisasi roles dengan reactive object
+    loading.value = false
+}
+
+// Fetch all roles
+const fetchRoles = async () => {
+    const res = await api.get('/roles')
+    allRoles.value = res.data.map(r => r.name) // ['admin', 'editor', 'viewer']
+}
+
+const updateRoles = async (user, updatedRoles) => {
+    roleLoading[user.id] = true
+    try {
+        const res = await api.put(`/users/${user.id}/roles`, { roles: updatedRoles })
+        user.roles = [...updatedRoles]
+        snackbar.showSnackbar(res.data.message || 'Roles updated successfully')
+    } catch (err) {
+        console.error('Gagal update roles', err)
+    } finally {
+        roleLoading[user.id] = false
+    }
+}
+
+onMounted(async () => {
+    await fetchUsers()
+    try {
+        const res = await api.get('/me')
+        currentUser.value = res.data
+    } catch {
+        currentUser.value = { role: 'user' } // fallback
+    }
+
+    fetchRoles()
+})
+
+const dialog = ref(false)
+const saving = ref(false)
+const form = ref({ id: null, name: '', email: '', password: '', role: '', status: 1 })
+
+const openForm = (user = null) => {
+    form.value = user
+        ? { ...user, password: '' }
+        : { id: null, name: '', email: '', password: '', role: '', status: 1 }
+    errors.value = {}
+    dialog.value = true
+}
+
+const saveUser = async () => {
+    saving.value = true
+    errors.value = {}
+
+    try {
+        if (form.value.id) {
+            await api.put(`/users/${form.value.id}`, form.value)
+        } else {
+            await api.post('/users', form.value)
+        }
+        dialog.value = false
+        await fetchUsers()
+    } catch (error) {
+        if (error.response?.status === 422) {
+            errors.value = error.response.data.errors
+        } else {
+            alert('Unexpected error')
+        }
+    } finally {
+        saving.value = false
+    }
+}
+
+const deleteUser = async id => {
+    if (confirm('Are you sure?')) {
+        await api.delete(`/users/${id}`)
+        await fetchUsers()
+    }
+}
+
+const toggleStatus = async (user, newStatus) => {
+    const oldStatus = user.status
+    user.status = newStatus ? 1 : 0
+
+    try {
+        const res = await api.patch(`/users/${user.id}/status`)
+        snackbar.showSnackbar(`Status berhasil diubah menjadi ${res.data.status ? 'Aktif' : 'Nonaktif'}`)
+    } catch (e) {
+        user.status = oldStatus
+        snackbar.showSnackbar('Gagal mengubah status')
+    }
+}
+
+</script>
