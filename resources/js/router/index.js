@@ -33,6 +33,12 @@ const routes = [
         name: 'LogActivity',
         component: () => import('@/views/LogActivity.vue'),
         meta: { requiresAuth: true, title: 'log_activity' },
+      },
+      {
+        path: '/backups',
+        name: 'Backups',
+        component: () => import('@/views/Backup.vue'),
+        meta: { requiresAuth: true, title: 'Backup Database' },
       }
     ]
   }

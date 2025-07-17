@@ -15,20 +15,36 @@ class LogController extends Controller
     public function index(Request $request)
     {
         $query = ActivityLog::with('user')
-            ->when($request->search, function ($q) use ($request) {
-                $q->where('module', 'like', '%' . $request->search . '%')
-                    ->orWhere('description', 'like', '%' . $request->search . '%');
-            })
-            ->when($request->start_date && $request->end_date, function ($q) use ($request) {
-                $q->whereBetween('created_at', [
-                    Carbon::parse($request->start_date)->startOfDay(),
-                    Carbon::parse($request->end_date)->endOfDay()
-                ]);
-            })
-            ->orderBy($request->sortBy ?? 'created_at', $request->sortDesc === 'true' ? 'desc' : 'asc');
+            ->when($request->start_date, fn($q) => $q->whereDate('created_at', '>=', $request->start_date))
+            ->when($request->end_date, fn($q) => $q->whereDate('created_at', '<=', $request->end_date))
+            ->when($request->search, fn($q) => $q->where('description', 'like', '%' . $request->search . '%'));
+
+        $sortBy = $request->input('sortBy', 'created_at');
+        $sortDesc = $request->input('sortDesc') === 'true' ? 'desc' : 'asc';
+        $perPage = (int) $request->input('itemsPerPage', 10);
+        $page = (int) $request->input('page', 1); // Tambahkan page dari request
+
+        $query->orderBy($sortBy, $sortDesc);
+
+        if ($perPage <= 0) {
+            $data = $query->get();
+            return response()->json([
+                'data' => $data,
+                'total' => $data->count(),
+            ]);
+        }
+
+        // Gunakan parameter $page untuk paginate
+        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json([
-            'data' => $query->paginate($request->itemsPerPage ?? 10),
+            'data' => $paginated->items(), // Data untuk tabel
+            'total' => $paginated->total(), // Total item secara keseluruhan
+            'per_page' => $paginated->perPage(), // Jumlah item per halaman
+            'current_page' => $paginated->currentPage(), // Halaman saat ini
+            'last_page' => $paginated->lastPage(), // Halaman terakhir
+            // Anda juga bisa mengirim 'links' jika Anda ingin membangun kontrol paginasi kustom di frontend
+            // 'links' => $paginated->linkCollection(),
         ]);
     }
 

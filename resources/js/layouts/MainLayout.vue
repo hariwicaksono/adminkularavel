@@ -39,6 +39,11 @@
           <template #prepend><v-icon>mdi-cog</v-icon></template>
           <template v-if="!rail" #title>{{ $t('settings') }}</template>
         </v-list-item>
+
+        <v-list-item to="/backups" router :title="!rail ? 'Backups' : ''" v-if="can('backup.view')">
+          <template #prepend><v-icon>mdi-database</v-icon></template>
+          <template v-if="!rail" #title>Backup DB</template>
+        </v-list-item>
       </v-list>
 
       <!-- Tombol toggle rail di bawah drawer -->

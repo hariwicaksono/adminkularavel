@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\BackupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,8 +82,13 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->middleware('permission:setting.view');
     Route::post('/settings/{id}', [SettingsController::class, 'update'])->middleware('permission:setting.update');
 
-    Route::get('/logs', [\App\Http\Controllers\Api\LogController::class, 'index']);
-    Route::get('/logs/export', [\App\Http\Controllers\Api\LogController::class, 'export']);
-    Route::get('/logs/export-pdf', [\App\Http\Controllers\Api\LogController::class, 'exportPdf']);
-    Route::get('/logs/print', [\App\Http\Controllers\Api\LogController::class, 'print']);
+    Route::get('/logs', [\App\Http\Controllers\Api\LogController::class, 'index'])->middleware('permission:log.view');
+    Route::get('/logs/export', [\App\Http\Controllers\Api\LogController::class, 'export'])->middleware('permission:log.view');
+    Route::get('/logs/export-pdf', [\App\Http\Controllers\Api\LogController::class, 'exportPdf'])->middleware('permission:log.view');
+    Route::get('/logs/print', [\App\Http\Controllers\Api\LogController::class, 'print'])->middleware('permission:log.view');
+
+    Route::get('/backup', [BackupController::class, 'index'])->middleware('permission:backup.view');
+    Route::post('/backup', [BackupController::class, 'store'])->middleware('permission:backup.create');
+    Route::get('/backup/download/{filename}', [BackupController::class, 'download'])->middleware('permission:backup.download');
+    Route::delete('/backup/{id}', [BackupController::class, 'destroy'])->middleware('permission:backup.delete');
 });

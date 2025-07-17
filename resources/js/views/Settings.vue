@@ -1,20 +1,23 @@
 <template>
     <v-container fluid>
         <h1 class="mb-3">{{ $t('settings') }}</h1>
-
-        <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" :label="t('search_settings')" class="mb-4"
-            clearable />
-
-        <v-data-table :headers="headers" :items="filteredSettings" :search="search" item-value="key" items-per-page="-1" :loading="loading">
-            <template #item.updated_at="{ item }">
-                {{ $helpers.formatDate(item.updated_at) }}
-            </template>
-            <template #item.actions="{ item }">
-                <v-btn icon variant="text" @click="openDialog(item)">
-                    <v-icon color="primary">mdi-pencil</v-icon>
-                </v-btn>
-            </template>
-        </v-data-table>
+        <v-card>
+            <v-card-title>
+                <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" :label="t('search_settings')"
+                    class="mb-4" clearable />
+            </v-card-title>
+            <v-data-table :headers="headers" :items="filteredSettings" :search="search" item-value="key"
+                items-per-page="-1" :loading="loading">
+                <template #item.updated_at="{ item }">
+                    {{ $helpers.formatDate(item.updated_at) }}
+                </template>
+                <template #item.actions="{ item }">
+                    <v-btn icon variant="text" @click="openDialog(item)">
+                        <v-icon color="primary">mdi-pencil</v-icon>
+                    </v-btn>
+                </template>
+            </v-data-table>
+        </v-card>
 
         <!-- Dialog Edit -->
         <v-dialog v-model="dialog" width="500">
