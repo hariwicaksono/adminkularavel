@@ -3,7 +3,7 @@
         <h1 class="mb-3">{{ $t('users') }}</h1>
         <v-card>
             <v-card-title>
-                <v-btn size="large" color="primary" @click="openForm()" class="mb-1"
+                <v-btn size="large" color="primary" @click="openForm()" class="mb-3"
                     v-if="can('user.create')"><v-icon>mdi-plus</v-icon> {{ $t('add') }}</v-btn>
             </v-card-title>
             <v-data-table-server :items="users" :headers="headers" :items-length="total" :loading="loading" :page="page"
@@ -84,7 +84,6 @@
             </v-card>
         </v-dialog>
     </v-container>
-
 </template>
 
 <script setup>
