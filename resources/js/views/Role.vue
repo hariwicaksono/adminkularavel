@@ -1,6 +1,6 @@
 <template>
     <v-container fluid>
-        <h1 class="mb-3">{{ $t('role') }}</h1>
+        <h1 class="mb-3">Roles</h1>
         <v-row>
             <v-col cols="12" sm="6">
                 <v-text-field v-model="newRole" label="Role baru" />
@@ -19,7 +19,7 @@
                 <v-btn icon variant="text" @click="editRole(item)" class="mr-2">
                     <v-icon color="primary">mdi-pencil</v-icon>
                 </v-btn>
-                <v-btn icon variant="text" @click="deleteRole(item.id)"
+                <v-btn icon variant="text" @click="confirmDelete(item)"
                     :disabled="item.permissions != null && item.permissions.length > 0">
                     <v-icon color="red">mdi-delete</v-icon>
                 </v-btn>
@@ -68,6 +68,22 @@
         </v-card>
     </v-dialog>
 
+    <v-dialog v-model="dialogDelete" max-width="400">
+        <v-card>
+            <v-card-title class="text-h5">{{ $t('confirmation') }} {{ $t('delete') }}</v-card-title>
+            <v-card-text>
+                {{ $t('confirm_delete') }} <strong>{{ selectedRole?.name }}</strong>?
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn variant="text" @click="dialogDelete = false">{{ $t('cancel') }}</v-btn>
+                <v-btn color="red" variant="flat" :loading="loading3" @click="deleteRole">
+                    <v-icon>mdi-delete</v-icon>
+                    {{ $t('delete') }}
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>
 
 <script setup>
@@ -81,10 +97,13 @@ import { initLogout } from '../utils/auth'
 const loading = ref(false)
 const loading1 = ref(false)
 const loading2 = ref(false)
+const loading3 = ref(false)
 const snackbar = useSnackbar()
 const roles = ref([])
 const newRole = ref('')
 const { t } = useI18n();
+const selectedRole = ref(null)
+const dialogDelete = ref(false)
 
 const headers = [
     { title: 'Role', key: 'name' },
@@ -108,14 +127,6 @@ const createRole = async () => {
     loading1.value = false
     snackbar.showSnackbar(res.data.message)
     fetchRoles()
-}
-
-const deleteRole = async (id) => {
-    if (confirm('Are you sure you want to delete this role?')) {
-        const res = await api.delete(`/roles/${id}`)
-        snackbar.showSnackbar(res.data.message)
-        fetchRoles()
-    }
 }
 
 const editDialog = ref(false)
@@ -171,6 +182,27 @@ const submitEdit = async () => {
     }
 
     fetchRoles()
+}
+
+function confirmDelete(item) {
+    selectedRole.value = item
+    dialogDelete.value = true
+}
+
+const deleteRole = async (id) => {
+    if (!selectedRole.value) return
+
+    loading3.value = true
+    try {
+        const res = await api.delete(`/roles/${selectedRole.value.id}`);
+        snackbar.showSnackbar(res.data.message)
+        fetchRoles(); // Refresh data setelah penghapusan
+    } catch (error) {
+        console.error("Error deleting role: ", error);
+    } finally {
+        loading3.value = false
+        dialogDelete.value = false
+    }
 }
 
 onMounted(() => {

@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <h1 class="mb-3">{{ $t('permission') }}</h1>
+    <h1 class="mb-3">Permissions</h1>
     <v-row>
       <v-col cols="12" sm="6">
         <v-text-field v-model="newPermission" label="Permission baru" />
@@ -16,12 +16,29 @@
         {{ $t('updated') }}: {{ $helpers.formatDate(item.updated_at) }}
       </template>
       <template #item.actions="{ item }">
-        <v-btn icon variant="text" @click="deletePermission(item.id)">
+        <v-btn icon variant="text" @click="confirmDelete(item)">
           <v-icon color="red">mdi-delete</v-icon>
         </v-btn>
       </template>
     </v-data-table>
   </v-container>
+
+  <v-dialog v-model="dialogDelete" max-width="400">
+        <v-card>
+            <v-card-title class="text-h5">{{ $t('confirmation') }} {{ $t('delete') }}</v-card-title>
+            <v-card-text>
+                {{ $t('confirm_delete') }} <strong>{{ selectedPermission?.name }}</strong>?
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn variant="text" @click="dialogDelete = false">{{ $t('cancel') }}</v-btn>
+                <v-btn color="red" variant="flat" :loading="loading2" @click="deletePermission">
+                    <v-icon>mdi-delete</v-icon>
+                    {{ $t('delete') }}
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>
 
 <script setup>
@@ -32,8 +49,11 @@ import { useI18n } from 'vue-i18n'
 
 const loading = ref(false)
 const loading1 = ref(false)
+const loading2 = ref(false)
 const snackbar = useSnackbar()
 const { t } = useI18n();
+const selectedPermission = ref(null)
+const dialogDelete = ref(false)
 
 const permissions = ref([])
 const newPermission = ref('')
@@ -60,12 +80,25 @@ const createPermission = async () => {
   fetchPermissions()
 }
 
-const deletePermission = async (id) => {
-  if (confirm('Are you sure you want to delete this permission?')) {
-    const res = await api.delete(`/permissions/${id}`)
-    snackbar.showSnackbar(res.data.message)
-    fetchPermissions()
-  }
+function confirmDelete(item) {
+    selectedPermission.value = item
+    dialogDelete.value = true
+}
+
+const deletePermission = async () => {
+  if (!selectedPermission.value) return
+
+    loading2.value = true
+    try {
+        const res = await api.delete(`/permissions/${selectedPermission.value.id}`);
+        snackbar.showSnackbar(res.data.message)
+        fetchPermissions(); // Refresh data setelah penghapusan
+    } catch (error) {
+        console.error("Error deleting permission: ", error);
+    } finally {
+        loading2.value = false
+        dialogDelete.value = false
+    }
 }
 
 onMounted(fetchPermissions)

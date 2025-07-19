@@ -47,6 +47,11 @@ const messages = {
     confirm_password_mismatch: 'Confirm Password does not match.',
     new_password_required: 'Please fill in the new password first',
     relogin_required: 'You need to re-login to apply changes.',
+    system: 'System',
+    confirm_logout: 'Are you sure you want to logout',
+    introduction: 'Introduction',
+    about_application: 'About Application',
+    welcome_dashboard: 'Welcome back! Have a nice day!',
   },
   id: {
     welcome: 'Selamat Datang',
@@ -93,6 +98,11 @@ const messages = {
     confirm_password_mismatch: 'Konfirmasi Password tidak cocok.',
     new_password_required: 'Isi password baru terlebih dahulu',
     relogin_required: 'Anda perlu login ulang untuk menerapkan perubahan.',
+    system: 'Sistem',
+    confirm_logout: 'Apakah anda yakin ingin logout',
+    introduction: 'Pendahuluan',
+    about_application: 'Tentang Aplikasi',
+    welcome_dashboard: 'Selamat datang kembali! Semoga harimu menyenangkan',
   }
 }
 

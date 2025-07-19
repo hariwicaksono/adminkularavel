@@ -20,8 +20,8 @@ const routes = [
       },
       { path: 'users', name: 'Users', component: Users, meta: { title: 'users' } },
       { path: 'settings', name: 'Settings', component: Settings, meta: { title: 'settings' } },
-      { path: 'roles', name: 'Role', component: Role, meta: { title: 'role' } },
-      { path: 'permissions', name: 'Permission', component: Permission, meta: { title: 'permission' } },
+      { path: 'roles', name: 'Role', component: Role, meta: { title: 'Roles' } },
+      { path: 'permissions', name: 'Permission', component: Permission, meta: { title: 'Permissions' } },
       {
         path: '/profile',
         name: 'MyProfile',

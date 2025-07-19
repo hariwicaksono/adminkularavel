@@ -23,7 +23,7 @@ class BackupController extends Controller
 
         $query = Backup::orderBy($sortBy, $sortDesc);
 
-       if ($perPage <= 0) {
+        if ($perPage <= 0) {
             $data = $query->get();
             return response()->json([
                 'data' => $data,
@@ -110,5 +110,14 @@ class BackupController extends Controller
         $backup->delete();
 
         return response()->json(['message' => 'The database backup was successfully deleted']);
+    }
+
+    public function checkToday()
+    {
+        $today = Carbon::today()->toDateString();
+
+        $backupExists = Backup::whereDate('created_at', $today)->exists();
+
+        return response()->json(['status' => $backupExists]);
     }
 }

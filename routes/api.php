@@ -36,6 +36,10 @@ Route::get('/settings/app', function () {
 
 // Protected Routes (require JWT token)
 Route::middleware('auth:api')->group(function () {
+    Route::get('laravel-version', function () {
+        $laravel = app();
+        echo "v" . $laravel::VERSION;
+    });
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -87,8 +91,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/logs/export-pdf', [\App\Http\Controllers\Api\LogController::class, 'exportPdf'])->middleware('permission:log.view');
     Route::get('/logs/print', [\App\Http\Controllers\Api\LogController::class, 'print'])->middleware('permission:log.view');
 
-    Route::get('/backup', [BackupController::class, 'index'])->middleware('permission:backup.view');
-    Route::post('/backup', [BackupController::class, 'store'])->middleware('permission:backup.create');
-    Route::get('/backup/download/{filename}', [BackupController::class, 'download'])->middleware('permission:backup.download');
-    Route::delete('/backup/{id}', [BackupController::class, 'destroy'])->middleware('permission:backup.delete');
+    Route::get('/backups', [BackupController::class, 'index'])->middleware('permission:backup.view');
+    Route::post('/backups', [BackupController::class, 'store'])->middleware('permission:backup.create');
+    Route::get('/backups/download/{filename}', [BackupController::class, 'download'])->middleware('permission:backup.download');
+    Route::delete('/backups/{id}', [BackupController::class, 'destroy'])->middleware('permission:backup.delete');
+    Route::get('/backups/check-today', [BackupController::class, 'checkToday'])->middleware('permission:backup.view');
 });

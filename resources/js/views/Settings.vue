@@ -12,9 +12,12 @@
                     {{ $helpers.formatDate(item.updated_at) }}
                 </template>
                 <template #item.actions="{ item }">
-                    <v-btn icon variant="text" @click="openDialog(item)">
-                        <v-icon color="primary">mdi-pencil</v-icon>
-                    </v-btn>
+                    <div v-if="item.key == 'app_developer'"></div>
+                    <div v-else>
+                        <v-btn icon variant="text" @click="openDialog(item)">
+                            <v-icon color="primary">mdi-pencil</v-icon>
+                        </v-btn>
+                    </div>
                 </template>
             </v-data-table>
         </v-card>
@@ -23,7 +26,7 @@
         <v-dialog v-model="dialog" width="500">
             <v-card>
                 <v-card-title class="d-flex justify-space-between align-center">
-                    Edit Setting
+                    Edit {{ $t('settings') }}
                     <v-btn variant="text" icon="mdi-close" @click="dialog = false"></v-btn>
                 </v-card-title>
                 <v-divider />
@@ -38,7 +41,7 @@
                     </div>
 
                     <!-- Jika value biasa -->
-                    <v-text-field v-else label="Value" v-model="editedItem.value" :error-messages="errors.value"
+                    <v-textarea rows="3" v-else label="Value" v-model="editedItem.value" :error-messages="errors.value"
                         hide-details="auto" />
                 </v-card-text>
 

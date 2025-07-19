@@ -1,9 +1,9 @@
 <template>
     <v-container fluid>
-        <h1 class="mb-3">Backup DB</h1>
+        <h1 class="mb-3">Backup Database</h1>
         <v-card>
             <v-card-title>
-                <v-btn color="primary" size="large" @click="runBackup" class="mb-3" :loading="loading1">
+                <v-btn color="primary" @click="runBackup" class="mb-3" :loading="loading1">
                     <v-icon>mdi-plus</v-icon> {{ $t('add') }}
                 </v-btn>
             </v-card-title>
@@ -25,24 +25,24 @@
                 </template>
             </v-data-table-server>
         </v-card>
-
-        <v-dialog v-model="dialogDelete" max-width="400">
-            <v-card>
-                <v-card-title class="text-h5">{{ $t('confirmation') }} {{ $t('delete') }}</v-card-title>
-                <v-card-text>
-                    {{ $t('confirm_delete') }} <strong>{{ selectedBackup?.filename }}</strong>?
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer />
-                    <v-btn variant="text" @click="dialogDelete = false">{{ $t('cancel') }}</v-btn>
-                    <v-btn color="red" variant="flat" :loading="loadingDelete" @click="deleteBackup">
-                        <v-icon>mdi-delete</v-icon>
-                        {{ $t('delete') }}
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
     </v-container>
+
+    <v-dialog v-model="dialogDelete" max-width="400">
+        <v-card>
+            <v-card-title class="text-h5">{{ $t('confirmation') }} {{ $t('delete') }}</v-card-title>
+            <v-card-text>
+                {{ $t('confirm_delete') }} <strong>{{ selectedBackup?.filename }}</strong>?
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn variant="text" @click="dialogDelete = false">{{ $t('cancel') }}</v-btn>
+                <v-btn color="red" variant="flat" :loading="loading2" @click="deleteBackup">
+                    <v-icon>mdi-delete</v-icon>
+                    {{ $t('delete') }}
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>
 
 <script setup>
@@ -54,10 +54,10 @@ const snackbar = useSnackbar()
 const backups = ref([])
 const loading = ref(false)
 const loading1 = ref(false)
+const loading2 = ref(false)
 const totalItems = ref(0)
 const selectedBackup = ref(null)
 const dialogDelete = ref(false)
-const loadingDelete = ref(false)
 
 const options = ref({
     page: 1,
@@ -78,7 +78,7 @@ function fetchData() {
     const sortBy = options.value.sortBy.length > 0 ? options.value.sortBy[0].key : 'created_at';
     const sortOrder = options.value.sortBy.length > 0 ? options.value.sortBy[0].order : 'desc';
 
-    api.get('/backup', {
+    api.get('/backups', {
         params: {
             page: options.value.page,
             itemsPerPage: options.value.itemsPerPage,
@@ -109,7 +109,7 @@ function fetchData() {
 const runBackup = async () => {
     loading1.value = true;
     try {
-        const res = await api.post('/backup');
+        const res = await api.post('/backups');
         snackbar.showSnackbar(res.data.message)
         fetchData(); // Refresh data setelah backup
     } catch (error) {
@@ -121,7 +121,7 @@ const runBackup = async () => {
 
 const download = async (filename) => {
     try {
-        const response = await api.get(`/backup/download/${filename}`, {
+        const response = await api.get(`/backups/download/${filename}`, {
             responseType: 'blob'
         });
 
@@ -146,18 +146,17 @@ function confirmDelete(item) {
 const deleteBackup = async () => {
     if (!selectedBackup.value) return
 
-    loadingDelete.value = true
+    loading2.value = true
     try {
-        const res = await api.delete(`/backup/${selectedBackup.value.id}`);
+        const res = await api.delete(`/backups/${selectedBackup.value.id}`);
         snackbar.showSnackbar(res.data.message)
         fetchData(); // Refresh data setelah penghapusan
     } catch (error) {
         console.error("Error deleting backup: ", error);
     } finally {
-        loadingDelete.value = false
+        loading2.value = false
         dialogDelete.value = false
     }
-
 };
 
 const formatSize = (bytes) => {

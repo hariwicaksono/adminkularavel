@@ -90,9 +90,9 @@ api.interceptors.response.use(
           msg === 'The token has been blacklisted' ||
           msg === 'Token has expired and can no longer be refreshed'
         ) {
-          console.warn('Token tidak bisa direfresh:', msg)
+          console.warn('Token cannot be refreshed: ', msg)
         } else {
-          console.error('Refresh gagal:', refreshError)
+          console.error('Refresh failed: ', refreshError)
         }
 
         processQueue(refreshError, null)

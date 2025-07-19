@@ -11,18 +11,20 @@
       <v-divider></v-divider>
 
       <v-list nav>
+        <!-- Dashboard -->
         <v-list-item to="/" exact router :title="!rail ? 'Dashboard' : ''">
           <template #prepend><v-icon>mdi-view-dashboard</v-icon></template>
           <template v-if="!rail" #title>{{ $t('dashboard') }}</template>
         </v-list-item>
 
-        <v-list-group value="users" prepend-icon="mdi-account-multiple" :sub-title="!rail ? 'Users' : ''"
+        <!-- Users Group -->
+        <v-list-group value="users" prepend-icon="mdi-account-multiple" :sub-title="!rail ? $t('users') : ''"
           v-if="can('user.view')">
           <template #activator="{ props }">
-            <v-list-item v-bind="props" title="Users" />
+            <v-list-item v-bind="props" :title="t('users')" />
           </template>
 
-          <v-list-item to="/users" router prepend-icon="mdi-account" :title="!rail ? 'Users' : ''"
+          <v-list-item to="/users" router prepend-icon="mdi-account" :title="!rail ? $t('users') : ''"
             v-if="can('user.view')" />
           <v-list-item to="/roles" router prepend-icon="mdi-account-check" :title="!rail ? 'Roles' : ''"
             v-if="can('role.view')" />
@@ -30,19 +32,25 @@
             v-if="can('permission.view')" />
         </v-list-group>
 
-        <v-list-item to="/logs" router :title="!rail ? 'Logs' : ''" v-if="can('log.view')">
-          <template #prepend><v-icon>mdi-database-eye</v-icon></template>
-          <template v-if="!rail" #title>{{ $t('log_activity') }}</template>
-        </v-list-item>
+        <!-- System / Admin Tools Group -->
+        <v-list-group value="system" prepend-icon="mdi-cog-box" :sub-title="!rail ? $t('system') : ''"
+          v-if="can('log.view') || can('backup.view') || can('setting.update')">
+          <template #activator="{ props }">
+            <v-list-item v-bind="props" :title="t('system')" />
+          </template>
 
-        <v-list-item to="/settings" router :title="!rail ? 'Settings' : ''" v-if="can('setting.update')">
-          <template #prepend><v-icon>mdi-cog</v-icon></template>
-          <template v-if="!rail" #title>{{ $t('settings') }}</template>
-        </v-list-item>
+          <v-list-item to="/logs" router prepend-icon="mdi-database-eye" :title="!rail ? $t('log_activity') : ''"
+            v-if="can('log.view')" />
+          <v-list-item to="/backups" router prepend-icon="mdi-database" :title="!rail ? 'Backup DB' : ''"
+            v-if="can('backup.view')" />
+          <v-list-item to="/settings" router prepend-icon="mdi-cog" :title="!rail ? $t('settings') : ''"
+            v-if="can('setting.update')" />
+        </v-list-group>
 
-        <v-list-item to="/backups" router :title="!rail ? 'Backups' : ''" v-if="can('backup.view')">
-          <template #prepend><v-icon>mdi-database</v-icon></template>
-          <template v-if="!rail" #title>Backup DB</template>
+        <!-- Logout -->
+        <v-list-item @click="confirmLogout" :title="!rail ? 'Logout' : ''">
+          <template #prepend><v-icon>mdi-logout</v-icon></template>
+          <template v-if="!rail" #title>{{ $t('logout') }}</template>
         </v-list-item>
       </v-list>
 
@@ -63,12 +71,23 @@
       <v-toolbar-title></v-toolbar-title>
       <v-spacer />
 
+      <!-- Notification -->
+      <v-menu offset-y location="bottom left" :close-on-content-click="false">
+        <template #activator="{ props }">
+          <v-btn icon variant="text" v-bind="props" class="d-flex align-center text-white mr-4" >
+            <v-avatar size="32"><v-icon large color="white">mdi-bell</v-icon></v-avatar>
+          </v-btn>
+        </template>
+        <v-card>
+          
+        </v-card>
+      </v-menu>
+
       <!-- User dropdown -->
       <v-menu offset-y location="bottom left" :close-on-content-click="false">
         <template #activator="{ props }">
-          <v-btn v-bind="props" class="d-flex align-center text-white" style="text-transform: none; margin-right: 16px"
-            variant="text">
-            <v-avatar size="32" class="mr-2"><v-icon large color="white">mdi-account-circle</v-icon></v-avatar>
+          <v-btn variant="text" v-bind="props" class="d-flex align-center text-white mr-4">
+            <v-avatar size="32" class="mr-2"><v-img :src="`https://ui-avatars.com/api/?name=${user?.name}`" /></v-avatar>
             <span class="mr-1">{{ user?.email }}
               <span v-if="loading1" class="ml-2"><v-progress-circular indeterminate
                   size="20"></v-progress-circular></span>
@@ -87,7 +106,7 @@
           </v-list>
           <v-divider />
           <v-list>
-            <v-list-item @click="logout" prepend-icon="mdi-logout">
+            <v-list-item @click="confirmLogout" prepend-icon="mdi-logout">
               <v-list-item-title>{{ $t('logout') }}</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -97,8 +116,7 @@
       <!-- Theme + Language -->
       <v-menu offset-y location="bottom left" :close-on-content-click="false">
         <template #activator="{ props }">
-          <v-btn v-bind="props" class="d-flex align-center text-white" style="text-transform: none; margin-right: 16px"
-            variant="text">
+          <v-btn icon variant="text" v-bind="props" class="d-flex align-center text-white mr-5">
             <v-avatar size="32"><v-icon large color="white">mdi-cog</v-icon></v-avatar>
           </v-btn>
         </template>
@@ -124,10 +142,27 @@
       <v-footer app padless class="justify-center">
         <v-col class="text-center text-caption py-2" cols="12">
           &copy; {{ new Date().getFullYear() }} <a href="https://itshop.biz.id" target="_blank">
-          {{ appCompany }}
-        </a>. Software {{ appName }} {{ appVersion }} . All rights reserved
+            {{ appCompany }}
+          </a>. Software {{ appName }} {{ appVersion }} . All rights reserved
         </v-col>
       </v-footer>
+
+      <v-dialog v-model="dialogLogout" max-width="400">
+        <v-card>
+            <v-card-title class="text-h5">{{ $t('confirmation') }} {{ $t('logout') }}</v-card-title>
+            <v-card-text>
+                {{ $t('confirm_logout') }}?
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer />
+                <v-btn variant="text" @click="dialogLogout = false">{{ $t('cancel') }}</v-btn>
+                <v-btn color="red" variant="flat" @click="logout" :loading="loading2">
+                    <v-icon>mdi-logout</v-icon>
+                    {{ $t('logout') }}
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
     </v-main>
   </v-app>
 </template>
@@ -147,13 +182,15 @@ const drawer = ref(true)
 const rail = ref(false)
 const isDark = ref(false)
 const theme = useTheme()
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const user = ref(null)
 const siteApp = ref(null)
 const siteLogo = ref(null)
 const loading = ref(false)
 const loading1 = ref(false)
+const loading2 = ref(false)
 const display = useDisplay()
+const dialogLogout = ref(false)
 const appName = import.meta.env.VITE_APP_NAME
 const appCompany = import.meta.env.VITE_APP_COMPANY
 const appVersion = 'v' + import.meta.env.VITE_APP_VERSION
@@ -220,7 +257,7 @@ onMounted(async () => {
     const res = await api.get('/me')
     user.value = res.data
   } catch (err) {
-    console.error('Failed to load users:', err)
+    console.error('Failed to load user:', err)
   }
   loading1.value = false
 })
@@ -237,10 +274,16 @@ watch(
   { immediate: true }
 )
 
+function confirmLogout() {
+    dialogLogout.value = true
+}
+
 const logout = async () => {
+  loading2.value = true
   try {
     const response = await api.post('/logout')
     snackbar.showSnackbar(response.data.message, 'success')
+    loading2.value = false
   } catch (err) {
     console.warn('Logout failed:', err)
   }
