@@ -72,7 +72,7 @@
       <v-spacer />
 
       <!-- Notification -->
-      <v-menu offset-y location="bottom left" :close-on-content-click="false">
+      <v-menu offset-y location="bottom left">
         <template #activator="{ props }">
           <v-btn icon variant="text" v-bind="props" class="d-flex align-center text-white mr-4" >
             <v-avatar size="32"><v-icon large color="white">mdi-bell</v-icon></v-avatar>
@@ -84,7 +84,7 @@
       </v-menu>
 
       <!-- User dropdown -->
-      <v-menu offset-y location="bottom left" :close-on-content-click="false">
+      <v-menu offset-y location="bottom left">
         <template #activator="{ props }">
           <v-btn variant="text" v-bind="props" class="d-flex align-center text-white mr-4">
             <v-avatar size="32" class="mr-2"><v-img :src="`https://ui-avatars.com/api/?name=${user?.name}`" /></v-avatar>

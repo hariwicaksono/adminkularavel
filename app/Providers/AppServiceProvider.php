@@ -24,9 +24,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        User::observe(LoggableObserver::class);
-        Role::observe(LoggableObserver::class);
-        Permission::observe(LoggableObserver::class);
-        Setting::observe(LoggableObserver::class);
+        $models = [
+            User::class,
+            Role::class,
+            Permission::class,
+            Setting::class,
+        ];
+
+        foreach ($models as $model) {
+            $model::observe(LoggableObserver::class);
+        }
     }
 }
