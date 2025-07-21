@@ -168,6 +168,7 @@
 </template>
 
 <script setup>
+import '../../css/admin.css'
 import { ref, onMounted, watch } from 'vue'
 import { useTheme, useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'

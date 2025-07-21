@@ -13,34 +13,36 @@ const routes = [
     path: '/',
     component: MainLayout,
     children: [
-      {
-        path: '', name: 'Dashboard', component: Dashboard, meta: {
-          title: 'dashboard'
-        }
-      },
+      { path: '', name: 'Dashboard', component: Dashboard, meta: { title: 'dashboard' } },
       { path: 'users', name: 'Users', component: Users, meta: { title: 'users' } },
       { path: 'settings', name: 'Settings', component: Settings, meta: { title: 'settings' } },
       { path: 'roles', name: 'Role', component: Role, meta: { title: 'Roles' } },
       { path: 'permissions', name: 'Permission', component: Permission, meta: { title: 'Permissions' } },
       {
-        path: '/profile',
+        path: 'profile',
         name: 'MyProfile',
         component: () => import('@/views/MyProfile.vue'),
         meta: { requiresAuth: true, title: 'my_profile' }
       },
       {
-        path: '/logs',
+        path: 'logs',
         name: 'LogActivity',
         component: () => import('@/views/LogActivity.vue'),
         meta: { requiresAuth: true, title: 'log_activity' },
       },
       {
-        path: '/backups',
+        path: 'backups',
         name: 'Backups',
         component: () => import('@/views/Backup.vue'),
         meta: { requiresAuth: true, title: 'Backup Database' },
       }
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/404.vue'),
+    meta: { title: 'Error 404' }
   }
 ]
 
@@ -49,6 +51,7 @@ const router = createRouter({
   routes
 })
 
+// Middleware auth
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   if (to.name !== 'Login' && !token) next({ name: 'Login' })

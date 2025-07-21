@@ -43,13 +43,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Contoh route tambahan (misalnya untuk dashboard, produk, dll)
-    Route::get('/dashboard', function () {
-        return response()->json([
-            'message' => 'You are authenticated',
-            'user' => auth()->user(),
-        ]);
-    });
+    Route::get('/dashboard', [\App\Http\Controllers\Api\DashboardController::class, 'index']);
 
     // User Management
     Route::get('/users', [UserController::class, 'index'])->middleware('permission:user.view');

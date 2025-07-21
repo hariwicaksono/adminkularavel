@@ -38,33 +38,21 @@
           </v-expand-transition>
         </v-card>
       </v-col>
-      <v-col cols="12">
-        <v-card class="pa-10">
-          <v-row align="center" justify="space-between">
-            <div>
-              <div class="text-h5 font-weight-bold">
-                👋 Halo, {{ user?.name }}
-                <v-progress-circular v-if="loading" indeterminate size="20" color="primary" class="ml-2" />
-              </div>
-              <div class="text-subtitle-1 text-grey-darken-1 mt-1">
-                {{ $t('welcome_dashboard') }} 🌞
-              </div>
-            </div>
-          </v-row>
-        </v-card>
-      </v-col>
     </v-row>
 
-    <!-- Summary Cards -->
-    <v-row class="mt-6" dense>
-      <v-col cols="12" sm="6" md="3" v-for="(item, index) in summaryCards" :key="index">
-        <v-card class="pa-4" color="surface" rounded="lg">
-          <v-icon size="36" class="mb-2" color="primary">{{ item.icon }}</v-icon>
-          <div class="text-h6 font-weight-bold">{{ item.title }}</div>
-          <div class="text-caption text-grey-darken-1">{{ item.subtitle }}</div>
+    <!-- Stats Cards -->
+    <v-row class="mt-6" dense v-if="!loading">
+      <v-col cols="12" sm="6" md="3" v-for="(item, index) in stats" :key="index">
+        <v-card class="pa-4 position-relative hover:shadow-md transition-all" rounded="lg">
+          <v-icon :color="item.color" size="36" class="position-absolute top-0 right-0 mt-3 mr-3 opacity-25">
+            {{ item.icon }}
+          </v-icon>
+          <div class="text-subtitle-1">{{ item.subtitle }}</div>
+          <div class="text-h4 font-weight-bold mt-1">{{ $helpers.formatNumber(item.title) }}</div>
         </v-card>
       </v-col>
     </v-row>
+    <v-skeleton-loader class="mt-6" v-else type="image" :loading="loading" />
 
     <v-row class="mt-6" dense v-if="can('backup.view')">
       <v-col cols="12">
@@ -88,8 +76,8 @@
 
               <!-- Tombol Backup Kanan -->
               <v-col cols="12" md="2" class="d-flex justify-end align-center mt-3 mt-md-0">
-                <v-btn v-if="!backupToday && can('backup.create')" color="primary" @click="doBackup" :loading="doingBackup"
-                  prepend-icon="mdi-database-arrow-up">
+                <v-btn v-if="!backupToday && can('backup.create')" color="primary" @click="doBackup"
+                  :loading="doingBackup" prepend-icon="mdi-database-arrow-up">
                   Backup Now
                 </v-btn>
                 <v-btn v-else color="primary" prepend-icon="mdi-database-check" link to="/backups">
@@ -129,7 +117,7 @@ import { can } from '@/utils/auth'
 import MyChart from '@/components/MyChart.vue'
 import MyChart2 from '@/components/MyChart2.vue'
 
-const user = ref(null)
+const stats = ref({})
 const loading = ref(false)
 const loading1 = ref(false)
 const version = ref('')
@@ -137,36 +125,13 @@ const expanded = ref(false) // default tertutup, bisa juga true jika mau expande
 const backupToday = ref(false)
 const doingBackup = ref(false)
 
-const summaryCards = [
-  {
-    title: 'Rp12.500.000',
-    subtitle: 'Total Penjualan',
-    icon: 'mdi-cash-multiple',
-  },
-  {
-    title: '320',
-    subtitle: 'Pengunjung Hari Ini',
-    icon: 'mdi-account-group',
-  },
-  {
-    title: '8',
-    subtitle: 'Pesanan Baru',
-    icon: 'mdi-cart-plus',
-  },
-  {
-    title: '15',
-    subtitle: 'Users',
-    icon: 'mdi-account',
-  },
-]
-
-const fetchMe = async () => {
+const fetchDashboard = async () => {
   loading.value = true
   try {
-    const res = await api.get('/me')
-    user.value = res.data
+    const res = await api.get('/dashboard')
+    stats.value = res.data
   } catch (err) {
-    console.error('Failed to load user: ', err)
+    console.error('Failed to load data dashboard: ', err)
   } finally {
     loading.value = false
   }
@@ -209,7 +174,7 @@ const doBackup = async () => {
 }
 
 onMounted(async () => {
-  fetchMe()
+  fetchDashboard()
   fetchVersion()
   await checkBackup()
 })
