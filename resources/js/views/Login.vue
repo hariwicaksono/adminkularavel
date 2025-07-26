@@ -59,7 +59,15 @@
                 :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 @click:append-inner="showPassword = !showPassword" clearable />
 
-              <v-btn size="large" :loading="loading" :disabled="!valid || loading" color="primary" class="mt-4" block
+              <v-layout justify-space-between>
+                <v-checkbox v-model="checkbox1" color="primary" label="Remember me" class="mt-n3"></v-checkbox>
+                <v-spacer></v-spacer>
+                <RouterLink to="/forgot-password" class="mt-1">
+                  Lost Password?
+                </RouterLink>
+              </v-layout>
+
+              <v-btn size="large" :loading="loading" :disabled="!valid || loading" color="primary" class="mt-n4 mb-1" block
                 type="submit">
                 {{ $t('login') }}
               </v-btn>
@@ -71,14 +79,14 @@
     <v-footer app class="text-center">
       <v-container>
         <span>&copy; {{ new Date().getFullYear() }} {{ siteName }}</span>
-      </v-container>  
+      </v-container>
     </v-footer>
   </v-app>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from 'vuetify'
 import api from '@/axios'
@@ -100,6 +108,7 @@ const theme = useTheme()
 const { locale } = useI18n()
 const siteName = ref(null)
 const siteLogo = ref(null)
+const checkbox1 = ref(true)
 
 const languages = [
   { label: 'ID', code: 'id' },

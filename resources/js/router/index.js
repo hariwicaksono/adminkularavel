@@ -10,6 +10,17 @@ import Permission from '../views/Permission.vue'
 const routes = [
   { path: '/login', name: 'Login', component: Login, meta: { title: 'Login' } },
   {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('@/views/ForgotPassword.vue'),
+    meta: { title: 'Forgot Password' }
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('@/views/ResetPassword.vue'), meta: { title: 'Reset Password' }
+  },
+  {
     path: '/',
     component: MainLayout,
     children: [
@@ -54,8 +65,13 @@ const router = createRouter({
 // Middleware auth
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
-  if (to.name !== 'Login' && !token) next({ name: 'Login' })
-  else next()
+
+  // Cek apakah route membutuhkan auth
+  if (to.meta.requiresAuth && !token) {
+    next({ name: 'Login' })
+  } else {
+    next()
+  }
 })
 
 export default router

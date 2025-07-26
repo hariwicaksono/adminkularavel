@@ -12,7 +12,7 @@
 
         <v-data-table :headers="headers" :items="roles" item-value="id" class="elevation-1" :loading="loading">
             <template #item.updated_at="{ item }">
-                {{ $t('created') }}: {{ $helpers.formatDate(item.updated_at) }}<br />
+                {{ $t('created') }}: {{ $helpers.formatDate(item.created_at) }}<br />
                 {{ $t('updated') }}: {{ $helpers.formatDate(item.updated_at) }}
             </template>
             <template #item.actions="{ item }">
@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import api from '@/axios'
 import router from '@/router'
 import { useSnackbar } from '@/stores/snackbar'
@@ -105,12 +105,12 @@ const { t } = useI18n();
 const selectedRole = ref(null)
 const dialogDelete = ref(false)
 
-const headers = [
+const headers = computed(() => [
     { title: 'Role', key: 'name' },
     { title: 'Permissions', key: 'permissions', sortable: false },
     { title: t('date'), key: 'updated_at' },
     { title: 'Aksi', key: 'actions', sortable: false }
-]
+])
 
 const fetchRoles = async () => {
     loading.value = true

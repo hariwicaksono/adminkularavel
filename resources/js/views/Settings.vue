@@ -63,6 +63,7 @@ import { ref, computed, onMounted } from 'vue'
 import api from '@/axios'
 import { useSnackbar } from '@/stores/snackbar'
 import { useI18n } from 'vue-i18n'
+import eventBus from '@/eventBus'
 
 const { t } = useI18n()
 const settings = ref([])
@@ -104,6 +105,13 @@ const fetchSettings = async () => {
     const { data } = await api.get('/settings')
     settings.value = data
     loading.value = false
+
+    // Load new settings
+    const res = await api.get('/settings/app')
+    localStorage.setItem('setting', JSON.stringify(res.data))
+
+    // Push Mitt
+    eventBus.emit('settings-updated', res.data)
 }
 
 const openDialog = (item) => {
@@ -155,7 +163,7 @@ const saveSetting = async () => {
             errors.value = error.response.data.errors
             //setTimeout(() => (errors.value = {}), 4000)
         }
-        snackbar.showSnackbar(error.response?.data?.message || 'Gagal menyimpan setting')
+        snackbar.showSnackbar(error.response?.data?.message || 'Failed to save setting')
     }
     loading1.value = false
 }

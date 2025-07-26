@@ -12,7 +12,7 @@
 
     <v-data-table :headers="headers" :items="permissions" class="elevation-1" :loading="loading">
       <template #item.updated_at="{ item }">
-        {{ $t('created') }}: {{ $helpers.formatDate(item.updated_at) }}<br />
+        {{ $t('created') }}: {{ $helpers.formatDate(item.created_at) }}<br />
         {{ $t('updated') }}: {{ $helpers.formatDate(item.updated_at) }}
       </template>
       <template #item.actions="{ item }">
@@ -24,21 +24,21 @@
   </v-container>
 
   <v-dialog v-model="dialogDelete" max-width="400">
-        <v-card>
-            <v-card-title class="text-h5">{{ $t('confirmation') }} {{ $t('delete') }}</v-card-title>
-            <v-card-text>
-                {{ $t('confirm_delete') }} <strong>{{ selectedPermission?.name }}</strong>?
-            </v-card-text>
-            <v-card-actions>
-                <v-spacer />
-                <v-btn variant="text" @click="dialogDelete = false">{{ $t('cancel') }}</v-btn>
-                <v-btn color="red" variant="flat" :loading="loading2" @click="deletePermission">
-                    <v-icon>mdi-delete</v-icon>
-                    {{ $t('delete') }}
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+    <v-card>
+      <v-card-title class="text-h5">{{ $t('confirmation') }} {{ $t('delete') }}</v-card-title>
+      <v-card-text>
+        {{ $t('confirm_delete') }} <strong>{{ selectedPermission?.name }}</strong>?
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="dialogDelete = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="red" variant="flat" :loading="loading2" @click="deletePermission">
+          <v-icon>mdi-delete</v-icon>
+          {{ $t('delete') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -57,11 +57,12 @@ const dialogDelete = ref(false)
 
 const permissions = ref([])
 const newPermission = ref('')
-const headers = [
+
+const headers = computed(() => [
   { title: 'Permission', key: 'name' },
   { title: t('date'), key: 'updated_at' },
   { title: 'Aksi', key: 'actions', sortable: false }
-]
+])
 
 const fetchPermissions = async () => {
   loading.value = true
@@ -81,24 +82,24 @@ const createPermission = async () => {
 }
 
 function confirmDelete(item) {
-    selectedPermission.value = item
-    dialogDelete.value = true
+  selectedPermission.value = item
+  dialogDelete.value = true
 }
 
 const deletePermission = async () => {
   if (!selectedPermission.value) return
 
-    loading2.value = true
-    try {
-        const res = await api.delete(`/permissions/${selectedPermission.value.id}`);
-        snackbar.showSnackbar(res.data.message)
-        fetchPermissions(); // Refresh data setelah penghapusan
-    } catch (error) {
-        console.error("Error deleting permission: ", error);
-    } finally {
-        loading2.value = false
-        dialogDelete.value = false
-    }
+  loading2.value = true
+  try {
+    const res = await api.delete(`/permissions/${selectedPermission.value.id}`);
+    snackbar.showSnackbar(res.data.message)
+    fetchPermissions(); // Refresh data setelah penghapusan
+  } catch (error) {
+    console.error("Error deleting permission: ", error);
+  } finally {
+    loading2.value = false
+    dialogDelete.value = false
+  }
 }
 
 onMounted(fetchPermissions)

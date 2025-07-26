@@ -87,8 +87,8 @@
       <v-menu offset-y location="bottom left">
         <template #activator="{ props }">
           <v-btn variant="text" v-bind="props" class="d-flex align-center text-white mr-4">
-            <v-avatar size="32" class="mr-2"><v-img :src="`https://ui-avatars.com/api/?name=${user?.name}`" /></v-avatar>
-            <span class="mr-1">{{ user?.email }}
+            <v-avatar size="32" class="mr-2"><v-img :src="`https://ui-avatars.com/api/?name=${userName}`" /></v-avatar>
+            <span class="mr-1">{{ userEmail }}
               <span v-if="loading1" class="ml-2"><v-progress-circular indeterminate
                   size="20"></v-progress-circular></span>
             </span>
@@ -169,7 +169,7 @@
 
 <script setup>
 import '../../css/admin.css'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, getCurrentInstance } from 'vue'
 import { useTheme, useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -184,7 +184,8 @@ const rail = ref(false)
 const isDark = ref(false)
 const theme = useTheme()
 const { locale, t } = useI18n()
-const user = ref(null)
+const userName = ref(null)
+const userEmail = ref(null)
 const siteApp = ref(null)
 const siteLogo = ref(null)
 const loading = ref(false)
@@ -221,6 +222,21 @@ const toggleDark = () => {
   localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
 }
 
+const fetchSetting = async () => {
+  // Load site info
+  loading.value = true
+  try {
+    const res = await api.get('/settings/app')
+    siteApp.value = res.data.site_name
+    siteLogo.value = res.data.site_logo
+    localStorage.setItem('setting', JSON.stringify(res.data))
+  } catch (e) {
+    console.error('Failed to load settings:', e)
+    snackbar.showSnackbar(e || 'Failed to load settings')
+  }
+  loading.value = false
+}
+
 onMounted(async () => {
   // Load theme & lang
   const savedTheme = localStorage.getItem('theme')
@@ -240,27 +256,32 @@ onMounted(async () => {
   // Set drawer terbuka hanya jika bukan mobile
   drawer.value = !display.smAndDown.value
 
-  // Load site info
-  loading.value = true
-  try {
-    const res = await api.get('/settings/app')
-    siteApp.value = res.data.site_name
-    siteLogo.value = res.data.site_logo
-  } catch (e) {
-    console.error('Failed to load settings:', e)
-    snackbar.showSnackbar(e || 'Failed to load settings')
+  // Load user
+  const storedUser = JSON.parse(localStorage.getItem('user'))
+  if (storedUser && typeof storedUser === 'object') {
+    userName.value = storedUser.name
+    userEmail.value = storedUser.email
   }
-  loading.value = false
 
-  // Load user info
-  loading1.value = true
-  try {
-    const res = await api.get('/me')
-    user.value = res.data
-  } catch (err) {
-    console.error('Failed to load user:', err)
+  // Load setting
+  const storedSetting = JSON.parse(localStorage.getItem('setting'))
+  if (storedSetting && typeof storedSetting === 'object') {
+    siteApp.value = storedSetting.site_name
+    siteLogo.value = storedSetting.site_logo
   }
-  loading1.value = false
+
+  // Load settings
+  if (!localStorage.getItem('setting')) {
+    fetchSetting()
+  }
+
+  // Listen when setting updated
+  const { proxy } = getCurrentInstance()
+  proxy.$eventBus.on('settings-updated', (data) => {
+    siteApp.value = data.site_name
+    siteLogo.value = data.site_logo
+    localStorage.setItem('setting', JSON.stringify(data))
+  })
 })
 
 // Auto rail mode on resize
