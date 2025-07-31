@@ -11,46 +11,29 @@
       <v-divider></v-divider>
 
       <v-list nav>
-        <!-- Dashboard -->
-        <v-list-item to="/" exact router :title="!rail ? 'Dashboard' : ''">
-          <template #prepend><v-icon>mdi-view-dashboard</v-icon></template>
-          <template v-if="!rail" #title>{{ $t('dashboard') }}</template>
-        </v-list-item>
+        <template v-for="(menu, index) in menus" :key="index">
+          <!-- GROUP / MENU PARENT -->
+          <v-list-group v-if="menu.children && menu.children.length" :value="menu.title" :prepend-icon="menu.icon"
+            :sub-title="!rail ? $t(menu.title) : ''" v-show="!menu.permission_key || can(menu.permission_key)">
+            <template #activator="{ props }">
+              <v-list-item v-bind="props" :title="$t(menu.title)" />
+            </template>
 
-        <!-- Users Group -->
-        <v-list-group value="users" prepend-icon="mdi-account-multiple" :sub-title="!rail ? $t('users') : ''"
-          v-if="can('user.view')">
-          <template #activator="{ props }">
-            <v-list-item v-bind="props" :title="t('users')" />
-          </template>
+            <!-- CHILDREN -->
+            <v-list-item v-for="(child, i) in menu.children" :key="i" :to="`${child.route}`" router
+              :prepend-icon="child.icon" :title="!rail ? $t(child.title) : ''"
+              v-show="!child.permission_key || can(child.permission_key)" />
+          </v-list-group>
 
-          <v-list-item to="/users" router prepend-icon="mdi-account" :title="!rail ? $t('users') : ''"
-            v-if="can('user.view')" />
-          <v-list-item to="/roles" router prepend-icon="mdi-account-check" :title="!rail ? 'Roles' : ''"
-            v-if="can('role.view')" />
-          <v-list-item to="/permissions" router prepend-icon="mdi-account-details" :title="!rail ? 'Permissions' : ''"
-            v-if="can('permission.view')" />
-        </v-list-group>
-
-        <!-- System / Admin Tools Group -->
-        <v-list-group value="system" prepend-icon="mdi-cog-box" :sub-title="!rail ? $t('system') : ''"
-          v-if="can('log.view') || can('backup.view') || can('setting.update')">
-          <template #activator="{ props }">
-            <v-list-item v-bind="props" :title="t('system')" />
-          </template>
-
-          <v-list-item to="/logs" router prepend-icon="mdi-database-eye" :title="!rail ? $t('log_activity') : ''"
-            v-if="can('log.view')" />
-          <v-list-item to="/backups" router prepend-icon="mdi-database" :title="!rail ? 'Backup DB' : ''"
-            v-if="can('backup.view')" />
-          <v-list-item to="/settings" router prepend-icon="mdi-cog" :title="!rail ? $t('settings') : ''"
-            v-if="can('setting.update')" />
-        </v-list-group>
+          <!-- SINGLE MENU -->
+          <v-list-item v-else :to="`${menu.route}`" exact router :prepend-icon="menu.icon"
+            :title="!rail ? $t(menu.title) : ''" v-show="!menu.permission_key || can(menu.permission_key)" />
+        </template>
 
         <!-- Logout -->
         <v-list-item @click="confirmLogout" :title="!rail ? 'Logout' : ''">
           <template #prepend><v-icon>mdi-logout</v-icon></template>
-          <template v-if="!rail" #title>{{ $t('logout') }}</template>
+          <template v-if="!rail" #title>Logout</template>
         </v-list-item>
       </v-list>
 
@@ -74,12 +57,12 @@
       <!-- Notification -->
       <v-menu offset-y location="bottom left">
         <template #activator="{ props }">
-          <v-btn icon variant="text" v-bind="props" class="d-flex align-center text-white mr-4" >
+          <v-btn icon variant="text" v-bind="props" class="d-flex align-center text-white mr-4">
             <v-avatar size="32"><v-icon large color="white">mdi-bell</v-icon></v-avatar>
           </v-btn>
         </template>
         <v-card>
-          
+
         </v-card>
       </v-menu>
 
@@ -149,20 +132,20 @@
 
       <v-dialog v-model="dialogLogout" max-width="400">
         <v-card>
-            <v-card-title class="text-h5">{{ $t('confirmation') }} {{ $t('logout') }}</v-card-title>
-            <v-card-text>
-                {{ $t('confirm_logout') }}?
-            </v-card-text>
-            <v-card-actions>
-                <v-spacer />
-                <v-btn variant="text" @click="dialogLogout = false">{{ $t('cancel') }}</v-btn>
-                <v-btn color="red" variant="flat" @click="logout" :loading="loading2">
-                    <v-icon>mdi-logout</v-icon>
-                    {{ $t('logout') }}
-                </v-btn>
-            </v-card-actions>
+          <v-card-title class="text-h5">{{ $t('confirmation') }} {{ $t('logout') }}</v-card-title>
+          <v-card-text>
+            {{ $t('confirm_logout') }}?
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="dialogLogout = false">{{ $t('cancel') }}</v-btn>
+            <v-btn color="red" variant="flat" @click="logout" :loading="loading2">
+              <v-icon>mdi-logout</v-icon>
+              {{ $t('logout') }}
+            </v-btn>
+          </v-card-actions>
         </v-card>
-    </v-dialog>
+      </v-dialog>
     </v-main>
   </v-app>
 </template>
@@ -177,6 +160,7 @@ import api from '@/axios'
 import { useSnackbar } from '@/stores/snackbar'
 import { initLogout, can } from '@/utils/auth'
 
+const menus = ref([])
 const snackbar = useSnackbar()
 const router = useRouter()
 const drawer = ref(true)
@@ -238,6 +222,14 @@ const fetchSetting = async () => {
 }
 
 onMounted(async () => {
+  // Menus
+  const savedMenus = localStorage.getItem('menus')
+  if (savedMenus) {
+    menus.value = JSON.parse(savedMenus)
+  } else {
+    // Fallback jika belum ada menus, bisa fetch dari API
+  }
+  
   // Load theme & lang
   const savedTheme = localStorage.getItem('theme')
   const savedLang = localStorage.getItem('lang')
@@ -297,7 +289,7 @@ watch(
 )
 
 function confirmLogout() {
-    dialogLogout.value = true
+  dialogLogout.value = true
 }
 
 const logout = async () => {

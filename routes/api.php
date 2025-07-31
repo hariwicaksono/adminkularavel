@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\BackupController;
+use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\MenuController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,7 +56,7 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/users/{id}', [UserController::class, 'update'])->middleware('permission:user.update');
     Route::delete('/users/{id}', [UserController::class, 'destroy'])->middleware('permission:user.delete');
     Route::patch('/users/{id}/status', [UserController::class, 'toggleStatus'])->middleware('permission:user.update');
-    Route::put('/users/{id}/roles', [UserController::class, 'updateRoles']);
+    Route::put('/users/{id}/roles', [UserController::class, 'updateRoles'])->middleware('permission:user.update');
 
     Route::get('/profile', function () {
         $user = auth()->user();
@@ -92,4 +94,19 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/backups/download/{filename}', [BackupController::class, 'download'])->middleware('permission:backup.download');
     Route::delete('/backups/{id}', [BackupController::class, 'destroy'])->middleware('permission:backup.delete');
     Route::get('/backups/check-today', [BackupController::class, 'checkToday'])->middleware('permission:backup.view');
+
+    Route::get('/pages', [PageController::class, 'index'])->middleware('permission:page.view');
+    Route::post('/pages', [PageController::class, 'store'])->middleware('permission:page.create');
+    Route::get('/pages/{id}', [PageController::class, 'show'])->middleware('permission:page.view');
+    Route::put('/pages/{id}', [PageController::class, 'update'])->middleware('permission:page.update');
+    Route::delete('/pages/{id}', [PageController::class, 'destroy'])->middleware('permission:page.delete');
+
+    Route::get('/menus', [MenuController::class, 'index']);
+    Route::get('/menus/all', [MenuController::class, 'all'])->middleware('permission:menu.view'); // menu untuk admin (semua)
+    Route::post('/menus', [MenuController::class, 'store'])->middleware('permission:menu.create');
+    Route::get('/menus/{id}', [MenuController::class, 'show'])->middleware('permission:menu.view');
+    Route::put('/menus/{id}', [MenuController::class, 'update'])->middleware('permission:menu.update');
+    Route::delete('/menus/{id}', [MenuController::class, 'destroy'])->middleware('permission:menu.delete');
+    Route::post('/menus/reorder', [MenuController::class, 'reorder'])->middleware('permission:menu.update');
+    Route::post('/menus/reorder-nested', [MenuController::class, 'reorderNested'])->middleware('permission:menu.update');
 });

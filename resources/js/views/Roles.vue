@@ -199,6 +199,7 @@ const deleteRole = async (id) => {
         fetchRoles(); // Refresh data setelah penghapusan
     } catch (error) {
         console.error("Error deleting role: ", error);
+        snackbar.showSnackbar(error.response.data.message)
     } finally {
         loading3.value = false
         dialogDelete.value = false

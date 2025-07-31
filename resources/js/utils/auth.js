@@ -41,9 +41,20 @@ export function initLogout() {
   localStorage.removeItem('token')
   localStorage.removeItem('user')
   localStorage.removeItem('permissions')
+  localStorage.removeItem('menus')
   delete axios.defaults.headers.common['Authorization']
 }
 
 export function can(permission) {
   return authState.permissions.includes(permission)
+}
+
+export async function loadMenus() {
+  const token = localStorage.getItem('token')
+  if (!token) return
+
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+  const res = await axios.get('/api/menus')
+  localStorage.setItem('menus', JSON.stringify(res.data))
+  //await loadDynamicAdminRoutes(res.data)
 }

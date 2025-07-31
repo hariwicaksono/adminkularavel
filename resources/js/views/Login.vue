@@ -6,8 +6,7 @@
 
       <v-menu offset-y location="bottom left" :close-on-content-click="false">
         <template #activator="{ props }">
-          <v-btn v-bind="props" class="d-flex align-center text-white" style="text-transform: none; margin-right: 16px"
-            variant="text">
+          <v-btn icon variant="text" v-bind="props" class="d-flex align-center text-white mr-5">
             <v-avatar size="32">
               <v-icon large color="white">mdi-cog</v-icon>
             </v-avatar>
@@ -62,7 +61,7 @@
               <v-layout justify-space-between>
                 <v-checkbox v-model="checkbox1" color="primary" label="Remember me" class="mt-n3"></v-checkbox>
                 <v-spacer></v-spacer>
-                <RouterLink to="/forgot-password" class="mt-1">
+                <RouterLink to="/forgot-password" class="mt-0">
                   Lost Password?
                 </RouterLink>
               </v-layout>
@@ -90,14 +89,14 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from 'vuetify'
 import api from '@/axios'
-import { setAuth } from '@/utils/auth'
+import { setAuth, loadMenus } from '@/utils/auth'
 import { useSnackbar } from '@/stores/snackbar'
 
 const snackbar = useSnackbar()
 const { t } = useI18n()
 const router = useRouter()
-const email = ref('admin@test.com')
-const password = ref('12345678')
+const email = ref('')
+const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
 const valid = ref(false)
@@ -162,6 +161,7 @@ const handleLogin = async () => {
       password: password.value,
     })
     setAuth(res.data)
+    await loadMenus()
     router.push('/')
     snackbar.showSnackbar(t('login_success'), 'success')
   } catch (err) {

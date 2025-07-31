@@ -49,7 +49,17 @@ class RoleController extends Controller
 
     public function destroy($id)
     {
+        if (in_array($id, [1, 2])) {
+            return response()->json(['message' => 'The role cannot be deleted'], 403);
+        }
+
         $role = Role::findOrFail($id);
+
+        // Cek apakah role terhubung dengan user
+        if ($role->users()->exists()) {
+            return response()->json(['message' => 'The role is currently in use by the user and cannot be deleted'], 422);
+        }
+        
         $role->delete();
 
         return response()->json(['message' => 'Role deleted']);

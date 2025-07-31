@@ -1,11 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import MainLayout from '../layouts/MainLayout.vue'
-import Login from '../views/Login.vue'
-import Dashboard from '../views/Dashboard.vue'
-import Users from '../views/Users.vue'
-import Settings from '../views/Settings.vue'
-import Role from '../views/Role.vue'
-import Permission from '../views/Permission.vue'
+import MainLayout from '@/layouts/MainLayout.vue'
+import Login from '@/views/Login.vue'
+import Dashboard from '@/views/Dashboard.vue'
+import Error404 from '@/views/404.vue'
 
 const routes = [
   { path: '/login', name: 'Login', component: Login, meta: { title: 'Login' } },
@@ -22,45 +19,78 @@ const routes = [
   },
   {
     path: '/',
+    name: 'Admin',
     component: MainLayout,
     children: [
-      { path: '', name: 'Dashboard', component: Dashboard, meta: { title: 'dashboard' } },
-      { path: 'users', name: 'Users', component: Users, meta: { title: 'users' } },
-      { path: 'settings', name: 'Settings', component: Settings, meta: { title: 'settings' } },
-      { path: 'roles', name: 'Role', component: Role, meta: { title: 'Roles' } },
-      { path: 'permissions', name: 'Permission', component: Permission, meta: { title: 'Permissions' } },
       {
-        path: 'profile',
-        name: 'MyProfile',
-        component: () => import('@/views/MyProfile.vue'),
-        meta: { requiresAuth: true, title: 'my_profile' }
+        path: '',
+        name: 'Dashboard',
+        component: Dashboard,
+        meta: { title: 'dashboard' }
       },
-      {
-        path: 'logs',
-        name: 'LogActivity',
-        component: () => import('@/views/LogActivity.vue'),
-        meta: { requiresAuth: true, title: 'log_activity' },
-      },
-      {
-        path: 'backups',
-        name: 'Backups',
-        component: () => import('@/views/Backup.vue'),
-        meta: { requiresAuth: true, title: 'Backup Database' },
-      }
+      // Dynamic routes akan di-*push* ke sini saat runtime
     ]
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('@/views/404.vue'),
+    component: Error404,
     meta: { title: 'Error 404' }
   }
 ]
 
+// Buat router
 const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+// Fungsi helper untuk memuat dynamic menu
+export async function loadDynamicAdminRoutes(menuData) {
+  const dynamicRoutes = []
+
+  for (const menu of menuData) {
+    // Jika ada route langsung
+    if (menu.route) {
+      const pathOnly = menu.route.startsWith('/') ? menu.route.slice(1) : menu.route
+
+      const filePath = pathOnly
+        .split('/')
+        .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+        .join('/')
+
+      console.log('Loading route:', pathOnly, '->', filePath)
+
+      dynamicRoutes.push({
+        path: pathOnly,
+        name: pathOnly.replaceAll('/', '-'),
+        component: () => import(`@/views/${filePath}.vue`),
+        meta: {
+          requiresAuth: true,
+          title: menu.title,
+          permission: menu.permission_key,
+          icon: menu.icon
+        }
+      })
+    }
+
+    // Jika punya anak, proses juga dan gabungkan hasilnya
+    if (menu.children && menu.children.length > 0) {
+      const childRoutes = await loadDynamicAdminRoutes(menu.children)
+      dynamicRoutes.push(...childRoutes)
+    }
+  }
+
+  // Jika sedang dipanggil dari root (bukan rekursif), tambahkan ke route admin
+  const adminRoute = router.getRoutes().find(r => r.name === 'Admin')
+  if (adminRoute) {
+    dynamicRoutes.forEach(route => {
+      router.addRoute('Admin', route)
+    })
+  }
+
+  return dynamicRoutes // <--- WAJIB ada return ini agar bisa digunakan secara rekursif
+}
 
 // Middleware auth
 router.beforeEach((to, from, next) => {

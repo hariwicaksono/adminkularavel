@@ -26,6 +26,15 @@ class PermissionController extends Controller
     public function destroy($id)
     {
         $permission = Permission::findOrFail($id);
+
+        // Cek apakah permission ini masih terhubung ke role manapun
+        if ($permission->roles()->exists()) {
+            return response()->json([
+                'message' => 'The permission is currently in use by a Role and cannot be removed'
+            ], 422);
+        }
+
+        // Jika tidak ada role yang terhubung, lanjutkan
         $permission->roles()->detach();
         $permission->delete();
 

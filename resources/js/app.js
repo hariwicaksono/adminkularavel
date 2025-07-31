@@ -1,13 +1,14 @@
 import './bootstrap';
 import { ref, createApp, watch } from 'vue';
 import App from './App.vue';
-import router from './router';
+import router, { loadDynamicAdminRoutes } from './router';
 import vuetify from './plugins/vuetify';
 import '@mdi/font/css/materialdesignicons.css';
 import { i18n } from './i18n';
 import { initAuth } from './utils/auth';
 import helpers from './utils/format';
 import eventBus from './eventBus';
+import axios from 'axios'
 
 const app = createApp(App);
 
@@ -21,8 +22,25 @@ app.config.globalProperties.$eventBus = eventBus;
 // Fetch setting dari API
 fetch('/api/settings/app')
   .then(res => res.json())
-  .then(data => {
+  .then(async (data) => {
     if (data.site_name) appName.value = data.site_name;
+
+    // ✅ Ambil data menu dari API
+    const savedMenus = localStorage.getItem('menus')
+    const token = localStorage.getItem('token')
+    if (token && !savedMenus) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
+      try {
+        const response = await axios.get('/api/menus')
+        localStorage.setItem('menus', JSON.stringify(response.data))
+        await loadDynamicAdminRoutes(response.data)
+      } catch (err) {
+        console.warn('Failed to load dynamic menu: ', err)
+      }
+    } else { 
+      await loadDynamicAdminRoutes(JSON.parse(savedMenus) ?? [])
+    }
 
     // Atur router title dinamis
     router.beforeEach((to, from, next) => {

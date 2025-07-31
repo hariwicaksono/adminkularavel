@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ $settings['site_name'] ?? 'My App' }}</title>
   <link rel="icon" href="{{ $settings['site_logo'] }}" type="image/x-icon">
-  @vite(['resources/js/app.js', 'resources/css/admin.css'])
+  @vite('resources/js/app.js')
 </head>
 
 <body>

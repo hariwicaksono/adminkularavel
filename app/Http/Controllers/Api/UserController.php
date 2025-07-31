@@ -31,13 +31,13 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
-            'status' => 'required|boolean',
+            'status' => 'required|in:0,1'
         ]);
 
         $validated['password'] = bcrypt($validated['password']);
 
         $user = User::create($validated);
-        return response()->json($user);
+        return response()->json(['message' => 'User created', 'user' => $user]);
     }
 
     public function show($id)
@@ -53,7 +53,7 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'nullable|min:6',
-            'status' => 'required|boolean',
+            'status' => 'required|in:0,1'
         ]);
 
         if ($validated['password']) {
@@ -68,12 +68,20 @@ class UserController extends Controller
 
     public function destroy($id)
     {
+        if (in_array($id, [1])) {
+            return response()->json(['message' => 'The user cannot be deleted'], 403);
+        }
+        
         User::findOrFail($id)->delete();
         return response()->json(['message' => 'User deleted']);
     }
 
     public function toggleStatus($id)
     {
+        if (in_array($id, [1])) {
+            return response()->json(['message' => 'The user cannot be set to inactive'], 403);
+        }
+
         $user = User::findOrFail($id);
         $user->status = !$user->status;
         $user->save();
@@ -83,6 +91,10 @@ class UserController extends Controller
 
     public function updateRoles(Request $request, $id)
     {
+        if (in_array($id, [1])) {
+            return response()->json(['message' => 'The user cannot be changed to another role'], 403);
+        }
+
         $request->validate([
             'roles' => 'array',
             'roles.*' => 'exists:roles,name',

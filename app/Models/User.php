@@ -22,6 +22,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'status',
     ];
 
     /**
@@ -50,6 +51,21 @@ class User extends Authenticatable implements JWTSubject
     public function roles()
     {
         return $this->belongsToMany(Role::class);
+    }
+
+    public function permissions()
+    {
+        return $this->roles()
+            ->with('permissions') // eager load permission dari role
+            ->get()
+            ->pluck('permissions')
+            ->flatten()
+            ->unique('id'); // buang duplikat
+    }
+
+    public function getPermissionKeys()
+    {
+        return $this->permissions()->pluck('name')->toArray(); // hasil: ['dashboard.view', ...]
     }
 
     /**

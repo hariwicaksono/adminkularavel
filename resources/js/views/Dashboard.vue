@@ -16,7 +16,7 @@
                 <p class="text-h6 font-weight-medium mb-3">{{ $t('about_application') }}</p>
                 <p class="text-subtitle-1">
                   Aplikasi Web dibuat menggunakan Laravel 12 dan Vue.js 3. Tech stack yang
-                  digunakan: PHP 8.1, MySQL, Laravel {{ version }} REST API, VITE, Vue.js v3, Vuetify.js v3, JWT-Auth,
+                  digunakan: PHP 8.2, MySQL, Laravel {{ version }} REST API, VITE, Vue.js v3, Vuetify.js v3, JWT-Auth,
                   Axios, Material Design Icons, Laravel-dompdf, Maatwebsite/excel dan Chart.js.
                 </p>
                 <p>

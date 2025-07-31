@@ -96,6 +96,7 @@ const deletePermission = async () => {
     fetchPermissions(); // Refresh data setelah penghapusan
   } catch (error) {
     console.error("Error deleting permission: ", error);
+    snackbar.showSnackbar(error.response.data.message)
   } finally {
     loading2.value = false
     dialogDelete.value = false

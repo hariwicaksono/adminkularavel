@@ -36,7 +36,7 @@
                 </template>
                 <template #item.status="{ item }">
                     <v-switch :model-value="!!item.status" @update:modelValue="val => toggleStatus(item, val)"
-                        hide-details color="green" :disabled="item.is_superadmin == 1 || !can('user.update')" />
+                        hide-details color="green" :disabled="item.is_superadmin == 1" v-if="can('user.update')" />
                 </template>
                 <template #item.updated_at="{ item }">
                     {{ $t('created') }}: {{ $helpers.formatDate(item.updated_at) }}<br />
@@ -72,8 +72,8 @@
                     <v-text-field v-model="form.password" label="Password" :type="'password'"
                         :error-messages="errors.password" class="mb-2" :required="!form.id" />
                     <v-select v-model="form.status" label="Status" :items="[
-                        { title: 'Aktif', value: 1 },
-                        { title: 'Nonaktif', value: 0 }
+                        { title: 'Active', value: 1 },
+                        { title: 'Inactive', value: 0 }
                     ]" :error-messages="errors.status" class="mb-2" required />
 
                     <v-btn type="submit" color="primary" class="mr-2"
@@ -185,25 +185,14 @@ const updateRoles = async (user, updatedRoles) => {
     try {
         const res = await api.put(`/users/${user.id}/roles`, { roles: updatedRoles })
         user.roles = [...updatedRoles]
-        snackbar.showSnackbar(res.data.message || 'Roles updated successfully')
-    } catch (err) {
-        console.error('Failed to update roles: ', err)
+        snackbar.showSnackbar(res.data.message)
+    } catch (error) {
+        snackbar.showSnackbar(error.response.data.message)
+        console.error('Failed to update roles: ', error)
     } finally {
         roleLoading[user.id] = false
     }
 }
-
-onMounted(async () => {
-    await fetchUsers()
-    try {
-        const res = await api.get('/me')
-        currentUser.value = res.data
-    } catch {
-        currentUser.value = { role: 'user' } // fallback
-    }
-
-    fetchRoles()
-})
 
 const dialog = ref(false)
 const saving = ref(false)
@@ -220,12 +209,17 @@ const openForm = (user = null) => {
 const saveUser = async () => {
     saving.value = true
     errors.value = {}
-
+    const payload = {
+        ...form.value,
+        status: form.value.status ? 1 : 0
+    }
     try {
         if (form.value.id) {
-            await api.put(`/users/${form.value.id}`, form.value)
+            const res = await api.put(`/users/${form.value.id}`, payload)
+            snackbar.showSnackbar(res.data.message)
         } else {
-            await api.post('/users', form.value)
+            const res = await api.post('/users', payload)
+            snackbar.showSnackbar(res.data.message)
         }
         dialog.value = false
         await fetchUsers()
@@ -251,12 +245,13 @@ const deleteUser = async () => {
     try {
         const res = await api.delete(`/users/${selectedUser.value.id}`);
         snackbar.showSnackbar(res.data.message)
-        fetchUsers(); // Refresh data setelah penghapusan
-    } catch (error) {
-        console.error("Error deleting user: ", error);
-    } finally {
         loading2.value = false
         dialogDelete.value = false
+        fetchUsers(); // Refresh data setelah penghapusan
+    } catch (error) {
+        loading2.value = false
+        console.error("Error deleting user: ", error);
+        snackbar.showSnackbar(error.response.data.message)
     }
 }
 
@@ -266,11 +261,22 @@ const toggleStatus = async (user, newStatus) => {
 
     try {
         const res = await api.patch(`/users/${user.id}/status`)
-        snackbar.showSnackbar(`The status has been successfully changed to ${res.data.status ? 'Aktif' : 'Nonaktif'}`)
-    } catch (e) {
+        snackbar.showSnackbar(`The user status has been successfully changed to ${res.data.status ? 'Active' : 'Inactive'}`)
+    } catch (error) {
         user.status = oldStatus
-        snackbar.showSnackbar('Failed to change status')
+        snackbar.showSnackbar(error.response.data.message)
     }
 }
 
+onMounted(async () => {
+    await fetchUsers()
+    try {
+        const res = await api.get('/me')
+        currentUser.value = res.data
+    } catch {
+        currentUser.value = { role: 'user' } // fallback
+    }
+
+    fetchRoles()
+})
 </script>
