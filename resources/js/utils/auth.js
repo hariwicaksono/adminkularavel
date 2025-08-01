@@ -1,6 +1,7 @@
 // js/utils/auth.js
 import axios from 'axios'
 import { reactive } from 'vue'
+import { loadDynamicAdminRoutes } from '@/router';
 
 export const authState = reactive({
   user: null,
@@ -56,5 +57,5 @@ export async function loadMenus() {
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
   const res = await axios.get('/api/menus')
   localStorage.setItem('menus', JSON.stringify(res.data))
-  //await loadDynamicAdminRoutes(res.data)
+  await loadDynamicAdminRoutes(res.data)
 }

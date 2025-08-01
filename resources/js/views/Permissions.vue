@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '@/axios'
 import { useSnackbar } from '@/stores/snackbar'
 import { useI18n } from 'vue-i18n'

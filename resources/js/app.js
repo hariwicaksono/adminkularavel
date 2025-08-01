@@ -28,18 +28,31 @@ fetch('/api/settings/app')
     // ✅ Ambil data menu dari API
     const savedMenus = localStorage.getItem('menus')
     const token = localStorage.getItem('token')
+
     if (token && !savedMenus) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
       try {
         const response = await axios.get('/api/menus')
-        localStorage.setItem('menus', JSON.stringify(response.data))
-        await loadDynamicAdminRoutes(response.data)
+        const menus = response.data
+        if (Array.isArray(menus)) {
+          localStorage.setItem('menus', JSON.stringify(menus))
+          await loadDynamicAdminRoutes(menus)
+        } else {
+          console.warn('API menus response is not an array', menus)
+        }
       } catch (err) {
         console.warn('Failed to load dynamic menu: ', err)
       }
-    } else { 
-      await loadDynamicAdminRoutes(JSON.parse(savedMenus) ?? [])
+    } else {
+      let parsedMenus = []
+      try {
+        parsedMenus = JSON.parse(savedMenus)
+        if (!Array.isArray(parsedMenus)) parsedMenus = []
+      } catch (e) {
+        console.warn('Failed to parse savedMenus from localStorage', e)
+        parsedMenus = []
+      }
+      await loadDynamicAdminRoutes(parsedMenus)
     }
 
     // Atur router title dinamis
