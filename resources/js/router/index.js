@@ -1,11 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
+import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import Dashboard from '@/views/Dashboard.vue'
 import Error404 from '@/views/404.vue'
 
 const routes = [
-  { path: '/login', name: 'Login', component: Login, meta: { title: 'Login' } },
+  {
+    path: '/',
+    name: 'Home',
+    component: Home,
+    meta: { title: 'Home'}
+  },
+  { path: '/login', name: 'Login', component: Login, meta: { title: 'Login', guest: true } },
   {
     path: '/forgot-password',
     name: 'ForgotPassword',
@@ -23,10 +30,10 @@ const routes = [
     component: MainLayout,
     children: [
       {
-        path: '',
+        path: '/dashboard',
         name: 'Dashboard',
         component: Dashboard,
-        meta: { title: 'dashboard' }
+        meta: { title: 'dashboard', requiresAuth: true }
       },
       // Dynamic routes akan di-*push* ke sini saat runtime
     ]
@@ -98,10 +105,14 @@ router.beforeEach((to, from, next) => {
 
   // Cek apakah route membutuhkan auth
   if (to.meta.requiresAuth && !token) {
+    // belum login → paksa ke login
     next({ name: 'Login' })
-  } else {
-    next()
   }
+  if (to.meta.guest && token) {
+    // sudah login → jangan ke login
+    next({ name: 'Dashboard' })
+  }
+  next()
 })
 
 export default router

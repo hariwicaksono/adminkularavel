@@ -1,0 +1,11 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* hilangkan hanya scrollbar horizontal */
+  overflow-y: auto;   /* tetap bisa scroll ke bawah */
+}
+
+* {
+  box-sizing: border-box;
+}
+

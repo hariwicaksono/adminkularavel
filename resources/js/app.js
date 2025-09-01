@@ -4,6 +4,7 @@ import App from './App.vue';
 import router, { loadDynamicAdminRoutes } from './router';
 import vuetify from './plugins/vuetify';
 import '@mdi/font/css/materialdesignicons.css';
+import '../css/app.css';
 import { i18n } from './i18n';
 import { initAuth } from './utils/auth';
 import helpers from './utils/format';

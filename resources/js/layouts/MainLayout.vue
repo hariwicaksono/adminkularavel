@@ -80,6 +80,9 @@
         </template>
         <v-card>
           <v-list>
+            <v-list-item link to="/" prepend-icon="mdi-home">
+              <v-list-item-title>Home</v-list-item-title>
+            </v-list-item>
             <v-list-item link to="/profile" prepend-icon="mdi-account">
               <v-list-item-title>{{ $t('my_profile') }}</v-list-item-title>
             </v-list-item>
@@ -151,7 +154,6 @@
 </template>
 
 <script setup>
-import '../../css/admin.css'
 import { ref, onMounted, watch, getCurrentInstance } from 'vue'
 import { useTheme, useDisplay } from 'vuetify'
 import { useRouter } from 'vue-router'

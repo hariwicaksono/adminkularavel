@@ -66,10 +66,14 @@
                 </RouterLink>
               </v-layout>
 
-              <v-btn size="large" :loading="loading" :disabled="!valid || loading" color="primary" class="mt-n4 mb-1" block
-                type="submit">
+              <v-btn size="large" :loading="loading" :disabled="!valid || loading" color="primary" class="mt-n4 mb-5"
+                block type="submit">
                 {{ $t('login') }}
               </v-btn>
+
+              <RouterLink to="/" class="text-decoration-none">
+                <i class="mdi mdi-chevron-left"></i> Back to Home
+              </RouterLink>
             </v-form>
           </v-card>
         </v-col>
