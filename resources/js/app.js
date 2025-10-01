@@ -24,6 +24,7 @@ app.config.globalProperties.$eventBus = eventBus;
 fetch('/api/settings/app')
   .then(res => res.json())
   .then(async (data) => {
+    localStorage.setItem('setting', JSON.stringify(data))
     if (data.site_name) appName.value = data.site_name;
 
     // ✅ Ambil data menu dari API

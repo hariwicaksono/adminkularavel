@@ -40,6 +40,13 @@
                         <v-img :src="previewUrl || editedItem.value" max-width="150" />
                     </div>
 
+                    <!-- Jika site_background -->
+                    <div v-else-if="editedItem.key === 'site_background'">
+                        <v-file-input v-model="editedItem.file" label="Upload Background" accept="image/*"
+                            @change="onFileChange" :error-messages="errors.file" hide-details="auto" class="mb-3" />
+                        <v-img :src="previewUrl || editedItem.value" max-width="150" />
+                    </div>
+
                     <!-- Jika value biasa -->
                     <v-textarea rows="3" v-else label="Value" v-model="editedItem.value" :error-messages="errors.value"
                         hide-details="auto" />
@@ -148,6 +155,13 @@ const saveSetting = async () => {
             return
         }
         form.append('logo', editedItem.value.file)
+    } else if (editedItem.value.key === 'site_background') {
+        if (!editedItem.value.file) {
+            errors.value.background = ['Pilih file terlebih dahulu']
+            snackbar.showSnackbar('Pilih file terlebih dahulu!')
+            return
+        }
+        form.append('background', editedItem.value.file)
     } else {
         form.append('value', editedItem.value.value)
     }

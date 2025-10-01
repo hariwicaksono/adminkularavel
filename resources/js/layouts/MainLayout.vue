@@ -71,7 +71,7 @@
         <template #activator="{ props }">
           <v-btn variant="text" v-bind="props" class="d-flex align-center text-white mr-4">
             <v-avatar size="32" class="mr-2"><v-img :src="`https://ui-avatars.com/api/?name=${userName}`" /></v-avatar>
-            <span class="mr-1">{{ userEmail }}
+            <span class="mr-1"><span class="d-none d-sm-flex">{{ userEmail }}</span>
               <span v-if="loading1" class="ml-2"><v-progress-circular indeterminate
                   size="20"></v-progress-circular></span>
             </span>
@@ -80,6 +80,10 @@
         </template>
         <v-card>
           <v-list>
+            <v-list-item>
+              <v-list-item-title>{{ userEmail }}</v-list-item-title>
+            </v-list-item>
+            <v-divider />
             <v-list-item link to="/" prepend-icon="mdi-home">
               <v-list-item-title>Home</v-list-item-title>
             </v-list-item>
@@ -89,9 +93,6 @@
             <v-list-item link to="/settings" prepend-icon="mdi-cog" v-if="can('setting.update')">
               <v-list-item-title>{{ $t('settings') }}</v-list-item-title>
             </v-list-item>
-          </v-list>
-          <v-divider />
-          <v-list>
             <v-list-item @click="confirmLogout" prepend-icon="mdi-logout">
               <v-list-item-title>{{ $t('logout') }}</v-list-item-title>
             </v-list-item>
@@ -231,7 +232,7 @@ onMounted(async () => {
   } else {
     // Fallback jika belum ada menus, bisa fetch dari API
   }
-  
+
   // Load theme & lang
   const savedTheme = localStorage.getItem('theme')
   const savedLang = localStorage.getItem('lang')
@@ -275,6 +276,12 @@ onMounted(async () => {
     siteApp.value = data.site_name
     siteLogo.value = data.site_logo
     localStorage.setItem('setting', JSON.stringify(data))
+  })
+
+  // === Listen when menus updated ===
+  proxy.$eventBus.on('menus-updated', (newMenus) => {
+    menus.value = newMenus
+    localStorage.setItem('menus', JSON.stringify(newMenus))
   })
 })
 

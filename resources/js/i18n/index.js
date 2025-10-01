@@ -54,6 +54,10 @@ const messages = {
     introduction: 'Introduction',
     about_application: 'About Application',
     welcome_dashboard: 'Welcome back! Have a nice day!',
+    about: 'About',
+    terms: 'Terms & Conditions',
+    privacy: 'Privacy Policy',
+    content: 'Content',
   },
   id: {
     welcome: 'Selamat Datang',
@@ -107,6 +111,10 @@ const messages = {
     introduction: 'Pendahuluan',
     about_application: 'Tentang Aplikasi',
     welcome_dashboard: 'Selamat datang kembali! Semoga harimu menyenangkan',
+    about: 'Tentang',
+    terms: 'Syarat & Ketentuan',
+    privacy: 'Kebijakan Privasi',
+    content: 'Konten',
   }
 }
 

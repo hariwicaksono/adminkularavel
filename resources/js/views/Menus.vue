@@ -205,6 +205,8 @@ const save = async () => {
         }
         formDialog.value = false;
         await fetchMenus(); // pastikan fetch selesai sebelum loading false
+        // === EMIT EVENT ke komponen lain ===
+        eventBus.emit('menus-updated', menus.value)
     } catch (error) {
         if (error.response?.status === 422) {
             errors.value = error.response.data.errors || {};
@@ -228,7 +230,9 @@ const deleteMenu = async () => {
     try {
         const res = await api.delete(`/menus/${selectedMenu.value.id}`);
         snackbar.showSnackbar(res.data.message)
-        fetchMenus(); // Refresh data setelah penghapusan
+        await fetchMenus(); // Refresh data setelah penghapusan
+        // === EMIT EVENT ke komponen lain ===
+        eventBus.emit('menus-updated', menus.value)
     } catch (error) {
         console.error("Error deleting menu: ", error);
         snackbar.showSnackbar(error.response.data.message);
@@ -261,5 +265,7 @@ const saveOrder = async () => {
     loading1.value = false;
     snackbar.showSnackbar(res.data.message)
     await fetchMenus()
+    // === EMIT EVENT ke komponen lain ===
+    eventBus.emit('menus-updated', menus.value)
 }
 </script>

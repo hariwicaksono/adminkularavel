@@ -38,6 +38,8 @@ Route::get('/settings/app', function () {
     return response()->json($settings);
 });
 
+Route::get('/pages/slug/{slug}', [PageController::class, 'showBySlug']);
+
 // Protected Routes (require JWT token)
 Route::middleware('auth:api')->group(function () {
     Route::get('laravel-version', function () {

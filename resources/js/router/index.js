@@ -12,6 +12,24 @@ const routes = [
     component: Home,
     meta: { title: 'Home'}
   },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/views/About.vue'),
+    meta: { title: 'about' }
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('@/views/Terms.vue'),
+    meta: { title: 'terms' }
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('@/views/Privacy.vue'),
+    meta: { title: 'privacy' }
+  },
   { path: '/login', name: 'Login', component: Login, meta: { title: 'Login', guest: true } },
   {
     path: '/forgot-password',
@@ -34,6 +52,12 @@ const routes = [
         name: 'Dashboard',
         component: Dashboard,
         meta: { title: 'dashboard', requiresAuth: true }
+      },
+      {
+        path: '/profile',
+        name: 'Profile',
+        component: import('@/views/Profile.vue'),
+        meta: { title: 'my_profile', requiresAuth: true }
       },
       // Dynamic routes akan di-*push* ke sini saat runtime
     ]

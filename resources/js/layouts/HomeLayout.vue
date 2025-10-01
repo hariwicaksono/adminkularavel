@@ -2,7 +2,10 @@
     <v-app>
         <!-- App Bar -->
         <v-app-bar app color="primary" dark elevation="2">
-            <v-toolbar-title>{{ siteName }}</v-toolbar-title>
+            <v-toolbar-title>
+                <RouterLink to="/" class="text-decoration-none" :title="siteName" :alt="siteName"
+                    style="color: var(--v-theme-primary)">{{ siteName }}</RouterLink>
+            </v-toolbar-title>
             <v-spacer />
 
             <!-- Login Button / User Menu -->
@@ -24,7 +27,7 @@
                             <v-img :src="`https://ui-avatars.com/api/?name=${userName}`" />
                         </v-avatar>
                         <span class="mr-1">
-                            {{ userEmail }}
+                            <span class="d-none d-sm-flex">{{ userEmail }}</span>
                             <span v-if="loading1" class="ml-2">
                                 <v-progress-circular indeterminate size="20"></v-progress-circular>
                             </span>
@@ -34,12 +37,13 @@
                 </template>
                 <v-card>
                     <v-list>
+                        <v-list-item>
+                            <v-list-item-title>{{ userEmail }}</v-list-item-title>
+                        </v-list-item>
+                        <v-divider />
                         <v-list-item link to="/dashboard" prepend-icon="mdi-view-dashboard">
                             <v-list-item-title>{{ $t('dashboard') }}</v-list-item-title>
                         </v-list-item>
-                    </v-list>
-                    <v-divider />
-                    <v-list>
                         <v-list-item @click="confirmLogout" prepend-icon="mdi-logout">
                             <v-list-item-title>{{ $t('logout') }}</v-list-item-title>
                         </v-list-item>
@@ -86,7 +90,18 @@
         <!-- Footer -->
         <v-footer class="text-center">
             <v-container>
-                <span>&copy; {{ new Date().getFullYear() }} {{ siteName }}</span>
+                <p class="mb-4">
+                    <RouterLink to="/about" class="text-decoration-none text-grey-darken-4 px-3">
+                        {{ $t('about') }}
+                    </RouterLink>
+                    <RouterLink to="/terms" class="text-decoration-none text-grey-darken-4 px-3">
+                        Terms & Conditions
+                    </RouterLink>
+                    <RouterLink to="/privacy" class="text-decoration-none text-grey-darken-4 px-3">
+                        Privacy Policy
+                    </RouterLink>
+                </p>
+                <span>&copy; {{ new Date().getFullYear() }} {{ siteName }} . All rights reserved</span>
             </v-container>
         </v-footer>
 
@@ -114,7 +129,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTheme, useDisplay } from 'vuetify'
 import api from '@/axios'
@@ -189,13 +204,11 @@ onMounted(async () => {
         locale.value = savedLang
     }
 
-    try {
-        const res = await api.get('/settings/app')
-        siteName.value = res.data.site_name
-        siteLogo.value = res.data.site_logo
-    } catch (e) {
-        console.error(t('failed_setting'), e)
-        snackbar.showSnackbar(e || t('failed_setting'))
+    // Load setting
+    const storedSetting = JSON.parse(localStorage.getItem('setting'))
+    if (storedSetting && typeof storedSetting === 'object') {
+        siteName.value = storedSetting.site_name
+        siteLogo.value = storedSetting.site_logo
     }
 })
 </script>
