@@ -14,12 +14,16 @@ class UserSeeder extends Seeder
             'name' => 'Admin Demo',
             'email' => 'admin@test.com',
             'password' => Hash::make('12345678'), // password: "12345678"
+            'status' => 1,
+            'is_superadmin' => 1
         ]);
 
         User::create([
             'name' => 'User Demo',
             'email' => 'user@test.com',
             'password' => Hash::make('12345678'), // password: "12345678"
+            'status' => 1,
+            'is_superadmin' => 0
         ]);
     }
 }

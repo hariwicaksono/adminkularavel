@@ -1,5 +1,29 @@
 <template>
   <v-app>
+    <!-- ========================= Preloader Start ========================= -->
+    <transition name="fade">
+      <div v-if="isLoading" class="preloader">
+        <div class="loader">
+          <div class="loader-logo">
+            <img :src="siteLogo" alt="Preloader" width="64" style="margin-top: 5px" />
+          </div>
+          <div class="spinner">
+            <div class="spinner-container">
+              <div class="spinner-rotator">
+                <div class="spinner-left">
+                  <div class="spinner-circle"></div>
+                </div>
+                <div class="spinner-right">
+                  <div class="spinner-circle"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+    <!-- ========================= Preloader End ========================= -->
+
     <v-navigation-drawer v-model="drawer" :rail="rail" :temporary="display.xs.value" app width="240">
       <v-list dense>
         <v-list-item :prepend-avatar="siteLogo" :title="siteApp">
@@ -175,6 +199,7 @@ const userName = ref(null)
 const userEmail = ref(null)
 const siteApp = ref(null)
 const siteLogo = ref(null)
+const isLoading = ref(true)
 const loading = ref(false)
 const loading1 = ref(false)
 const loading2 = ref(false)
@@ -225,6 +250,10 @@ const fetchSetting = async () => {
 }
 
 onMounted(async () => {
+  setTimeout(() => {
+    isLoading.value = false
+  }, 1000)
+
   // Menus
   const savedMenus = localStorage.getItem('menus')
   if (savedMenus) {

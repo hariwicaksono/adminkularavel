@@ -143,6 +143,7 @@ import { ref, onMounted, watch } from 'vue'
 import draggable from 'vuedraggable'
 import api from '@/axios'
 import { useSnackbar } from '@/stores/snackbar'
+import eventBus from '@/eventBus'
 
 const menus = ref([])
 const formDialog = ref(false)

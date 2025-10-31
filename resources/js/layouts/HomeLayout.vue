@@ -1,11 +1,35 @@
 <template>
     <v-app>
+        <!-- ========================= Preloader Start ========================= -->
+                <transition name="fade">
+                    <div v-if="isLoading" class="preloader">
+                        <div class="loader">
+                            <div class="loader-logo">
+                                <img :src="siteLogo" alt="Preloader" width="64" style="margin-top: 5px" />
+                            </div>
+                            <div class="spinner">
+                                <div class="spinner-container">
+                                    <div class="spinner-rotator">
+                                        <div class="spinner-left">
+                                            <div class="spinner-circle"></div>
+                                        </div>
+                                        <div class="spinner-right">
+                                            <div class="spinner-circle"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </transition>
+                <!-- ========================= Preloader End ========================= -->
+
         <!-- App Bar -->
         <v-app-bar app color="primary" dark elevation="2">
-            <v-toolbar-title>
+            <v-app-bar-title>
                 <RouterLink to="/" class="text-decoration-none" :title="siteName" :alt="siteName"
                     style="color: var(--v-theme-primary)">{{ siteName }}</RouterLink>
-            </v-toolbar-title>
+            </v-app-bar-title>
             <v-spacer />
 
             <!-- Login Button / User Menu -->
@@ -138,6 +162,7 @@ import { initLogout, can } from '@/utils/auth'
 
 const snackbar = useSnackbar()
 const router = useRouter()
+const isLoading = ref(true)
 const loading1 = ref(false)
 const loading2 = ref(false)
 const isDark = ref(false)
@@ -195,6 +220,10 @@ const logout = async () => {
 }
 
 onMounted(async () => {
+    setTimeout(() => {
+            isLoading.value = false
+        }, 1000)
+
     const savedTheme = localStorage.getItem('theme')
     const savedLang = localStorage.getItem('lang')
     isDark.value = savedTheme === 'dark'

@@ -3,9 +3,12 @@
     <h1 class="mb-3">Pages</h1>
     <v-card>
       <v-card-title class="d-flex justify-between align-center">
-        <v-btn color="primary" @click="openAdd"><v-icon>mdi-plus</v-icon> {{ $t('add') }}</v-btn>
+        <v-btn color="primary" @click="openAdd" class="mb-3"><v-icon>mdi-plus</v-icon> {{ $t('add') }}</v-btn>
       </v-card-title>
-
+      <v-card-subtitle>
+        <v-text-field v-model="search" placeholder="Cari Judul / Konten"
+          append-inner-icon="mdi-magnify" clearable @keyup.enter="fetchPages" @click:clear="fetchPages" />
+      </v-card-subtitle>
       <v-data-table-server :headers="headers" :items="pages" :items-length="totalItems" :loading="loading"
         v-model:options="options" @update:options="fetchPages">
         <template #item.updated_at="{ item }">
@@ -22,8 +25,7 @@
           <v-btn icon variant="text" @click="openEdit(item)" class="mr-2">
             <v-icon color="primary">mdi-pencil</v-icon>
           </v-btn>
-          <v-btn icon variant="text" @click="confirmDelete(item)"
-            :disabled="item.id == 1 || item.id == 2 || item.id == 3">
+          <v-btn icon variant="text" @click="confirmDelete(item)">
             <v-icon color="red">mdi-delete</v-icon>
           </v-btn>
         </template>
@@ -86,6 +88,7 @@ import WysiwygEditor from '@/components/WysiwygEditor.vue'
 import { useSnackbar } from '@/stores/snackbar'
 import { useI18n } from 'vue-i18n'
 
+const search = ref('')
 const snackbar = useSnackbar()
 const pages = ref([])
 const totalItems = ref(0)
@@ -110,19 +113,21 @@ const options = ref({
 
 const fetchPages = async () => {
   loading.value = true
-  const sortBy = options.value.sortBy.length > 0 ? options.value.sortBy[0].key : 'created_at';
-  const sortOrder = options.value.sortBy.length > 0 ? options.value.sortBy[0].order : 'desc';
+  const sortBy = options.value.sortBy.length > 0 ? options.value.sortBy[0].key : 'created_at'
+  const sortOrder = options.value.sortBy.length > 0 ? options.value.sortBy[0].order : 'desc'
+
   try {
     const { data } = await api.get('/pages', {
       params: {
         page: options.value.page,
         itemsPerPage: options.value.itemsPerPage,
-        sortBy: sortBy,
-        sortDesc: sortOrder === 'desc' ? 'true' : 'false', // Kirim sebagai string 'true'/'false'
+        sortBy,
+        sortDesc: sortOrder === 'desc' ? 'true' : 'false',
+        search: search.value, // <--- tambahan di sini
       },
     })
-    pages.value = data?.data || [];
-    totalItems.value = data?.total || 0;
+    pages.value = data?.data || []
+    totalItems.value = data?.total || 0
   } finally {
     loading.value = false
   }

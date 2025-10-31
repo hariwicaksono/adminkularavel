@@ -9,9 +9,31 @@ use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Page::latest()->paginate(10));
+        $query = Page::query();
+
+        // Filter pencarian
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('title_en', 'like', "%{$search}%")
+                    ->orWhere('body', 'like', "%{$search}%")
+                    ->orWhere('body_en', 'like', "%{$search}%");
+            });
+        }
+
+        // Sorting
+        $sortBy = $request->get('sortBy', 'created_at');
+        $sortDesc = $request->boolean('sortDesc', true);
+        $query->orderBy($sortBy, $sortDesc ? 'desc' : 'asc');
+
+        // Pagination
+        $perPage = $request->get('itemsPerPage', 10);
+        $pages = $query->paginate($perPage);
+
+        return response()->json($pages);
     }
 
     public function store(Request $request)
