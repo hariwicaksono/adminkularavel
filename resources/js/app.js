@@ -10,11 +10,16 @@ import { initAuth } from './utils/auth';
 import helpers from './utils/format';
 import eventBus from './eventBus';
 import axios from 'axios'
+import { registerSW } from 'virtual:pwa-register';
 
 const app = createApp(App);
 
 // Gunakan ref agar bisa direaktifkan
 const appName = ref('My App');
+
+registerSW({
+    immediate: true,
+});
 
 // Tambahkan ke globalProperties
 app.config.globalProperties.$appName = appName;
