@@ -20,7 +20,14 @@ class UserController extends Controller
             ->when($role, fn($q) => $q->whereHas('roles', fn($r) => $r->where('name', $role)))
             ->when(!is_null($status), fn($q) => $q->where('status', $status));
 
-        $users = $query->paginate($request->input('per_page', 10));
+        // Sorting
+        $sortBy = $request->get('sortBy', 'created_at');
+        $sortDesc = $request->boolean('sortDesc', true);
+        $query->orderBy($sortBy, $sortDesc ? 'asc' : 'desc');
+
+        // Pagination
+        $perPage = $request->get('itemsPerPage', 10);
+        $users = $query->paginate($perPage);
 
         return response()->json($users);
     }

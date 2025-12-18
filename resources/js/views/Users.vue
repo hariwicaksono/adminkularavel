@@ -6,25 +6,26 @@
                 <v-btn color="primary" @click="openForm()" class="mb-3"
                     v-if="can('user.create')"><v-icon>mdi-plus</v-icon> {{ $t('add') }}</v-btn>
             </v-card-title>
-            <v-data-table-server :items="users" :headers="headers" :items-length="total" :loading="loading" :page="page"
-                :items-per-page="perPage" @update:page="fetchUsers" @update:items-per-page="fetchUsers">
-                <template #top>
-                    <v-row>
-                        <v-col cols="12" md="3">
-                            <v-select v-model="roleFilter" label="Filter by Role" :items="allRoles" clearable
-                                @update:modelValue="fetchUsers" />
-                        </v-col>
-                        <v-col cols="12" md="3">
-                            <v-select v-model="statusFilter" label="Filter by Status" :items="[
-                                { title: 'Aktif', value: 1 },
-                                { title: 'Nonaktif', value: 0 },
-                            ]" clearable @update:modelValue="fetchUsers" />
-                        </v-col>
-                        <v-col cols="12" md="6">
-                            <v-text-field v-model="search" label="Search" @keyup.enter="fetchUsers" />
-                        </v-col>
-                    </v-row>
-                </template>
+
+            <v-card-subtitle>
+                <v-row>
+                    <v-col cols="12" md="3">
+                        <v-select v-model="filters.role" label="Filter by Role" :items="allRoles" clearable
+                            @update:modelValue="fetchUsers" />
+                    </v-col>
+                    <v-col cols="12" md="3">
+                        <v-select v-model="filters.status" label="Filter by Status" :items="[
+                            { title: 'Aktif', value: 1 },
+                            { title: 'Nonaktif', value: 0 },
+                        ]" clearable @update:modelValue="fetchUsers" />
+                    </v-col>
+                    <v-col cols="12" md="6">
+                        <v-text-field v-model="filters.search" label="Search" @keyup.enter="fetchUsers" />
+                    </v-col>
+                </v-row>
+            </v-card-subtitle>
+            <v-data-table-server :headers="headers" :items="users" :items-length="totalItems" :loading="loading"
+                v-model:options="options" @update:options="fetchUsers">
                 <template #item.roles="{ item }">
                     <!-- <v-chip v-for="role in item.roles" :key="role" color="primary" size="small" class="me-1">
                         {{ role }}
@@ -114,15 +115,10 @@ const snackbar = useSnackbar()
 const errors = ref({})
 const users = ref([])
 const allRoles = ref([])
-const total = ref(0)
+const totalItems = ref(0)
 const loading = ref(false)
 const loading1 = ref(false)
 const loading2 = ref(false)
-const page = ref(1)
-const perPage = ref(10)
-const search = ref('')
-const roleFilter = ref('')
-const statusFilter = ref('')
 const currentUser = ref({})
 const { t } = useI18n();
 const selectedUser = ref(null)
@@ -149,16 +145,32 @@ const syncUserRoles = (users) => {
     })
 }
 
+const filters = ref({
+    role: "",
+    status: "",
+    search: "",
+});
+
+const options = ref({
+    page: 1,
+    itemsPerPage: 10,
+    sortBy: [{ key: 'created_at', order: 'desc' }], // Ini adalah format yang diharapkan oleh v-data-table-server
+});
+
 const fetchUsers = async () => {
     loading.value = true
+    const sortBy = options.value.sortBy.length > 0 ? options.value.sortBy[0].key : 'created_at'
+    const sortOrder = options.value.sortBy.length > 0 ? options.value.sortBy[0].order : 'desc'
 
     const res = await api.get('/users', {
         params: {
-            page: page.value,
-            per_page: perPage.value,
-            search: search.value,
-            role: roleFilter.value,
-            status: statusFilter.value,
+            page: options.value.page,
+            itemsPerPage: options.value.itemsPerPage,
+            sortBy: sortBy, // Kirim key kolom
+            sortDesc: sortOrder === 'desc' ? 'true' : 'false', // Kirim 'true' atau 'false'
+            search: filters.value.search,
+            role: filters.value.role,
+            status: filters.value.status,
         }
     })
 
@@ -168,7 +180,7 @@ const fetchUsers = async () => {
         roles: user.roles?.map(r => r.name) || [] // misalnya: ['admin', 'editor']
     }))
 
-    total.value = res.data.total
+    totalItems.value = res.data.total
 
     syncUserRoles(users.value) // Sinkronisasi roles dengan reactive object
     loading.value = false
