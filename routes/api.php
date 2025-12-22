@@ -111,4 +111,12 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/menus/{id}', [MenuController::class, 'destroy'])->middleware('permission:menu.delete');
     Route::post('/menus/reorder', [MenuController::class, 'reorder'])->middleware('permission:menu.update');
     Route::post('/menus/reorder-nested', [MenuController::class, 'reorderNested'])->middleware('permission:menu.update');
+
+    // News Management
+    Route::get('/news', [\App\Http\Controllers\Api\NewsController::class, 'index'])->middleware('permission:news.view');
+    Route::post('/news', [\App\Http\Controllers\Api\NewsController::class, 'store'])->middleware('permission:news.create');
+    Route::get('/news/{id}', [\App\Http\Controllers\Api\NewsController::class, 'show'])->middleware('permission:news.view');
+    Route::put('/news/{id}', [\App\Http\Controllers\Api\NewsController::class, 'update'])->middleware('permission:news.update');
+    Route::delete('/news/{id}', [\App\Http\Controllers\Api\NewsController::class, 'destroy'])->middleware('permission:news.delete');
+    Route::put('/news/{id}/toggle-status', [\App\Http\Controllers\Api\NewsController::class, 'toggleStatus'])->middleware('permission:news.update');
 });

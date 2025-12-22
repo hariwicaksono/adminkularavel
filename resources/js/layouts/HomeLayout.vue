@@ -115,13 +115,13 @@
         <v-footer class="text-center">
             <v-container>
                 <p class="mb-4">
-                    <RouterLink to="/about" class="text-decoration-none text-grey-darken-4 px-3">
+                    <RouterLink to="/about" class="text-decoration-none px-3">
                         {{ $t('about') }}
                     </RouterLink>
-                    <RouterLink to="/terms" class="text-decoration-none text-grey-darken-4 px-3">
+                    <RouterLink to="/terms" class="text-decoration-none px-3">
                         Terms & Conditions
                     </RouterLink>
-                    <RouterLink to="/privacy" class="text-decoration-none text-grey-darken-4 px-3">
+                    <RouterLink to="/privacy" class="text-decoration-none px-3">
                         Privacy Policy
                     </RouterLink>
                 </p>
