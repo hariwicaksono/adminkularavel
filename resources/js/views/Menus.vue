@@ -23,7 +23,8 @@
                 </div>
                 <div v-else>
                     <draggable v-model="menus" item-key="id" handle=".drag-handle"
-                        :group="{ name: 'menu', pull: true, put: true }">
+                        :group="{ name: 'menu', pull: true, put: true }" :force-fallback="true" :fallback-on-body="true"
+                        :scroll="true" :scroll-sensitivity="120" :scroll-speed="20">
                         <template #item="{ element }">
                             <v-card class="mb-2" :color="element.is_active ? 'grey-lighten-4' : 'red-lighten-4'">
                                 <v-card-text class="d-flex justify-between align-start">
