@@ -50,8 +50,7 @@
             <v-form @submit.prevent="handleLogin" ref="formRef" v-model="valid">
               <v-alert v-if="apiError" type="error" class="mb-4">{{ apiError }}</v-alert>
 
-              <v-text-field v-model="email" :label="$t('email')" type="email" prepend-inner-icon="mdi-email"
-                :rules="[rules.required, rules.email]" clearable />
+              <v-text-field v-model="email" :label="$t('email') +' / Username'" type="email" prepend-inner-icon="mdi-email" :rules="[rules.required]" clearable />
 
               <v-text-field v-model="password" :label="$t('password')" :type="showPassword ? 'text' : 'password'"
                 prepend-inner-icon="mdi-lock" :rules="[rules.required]"

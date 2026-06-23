@@ -18,7 +18,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required',
+            'name' => 'required|unique:users',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6'
         ]);
@@ -38,7 +38,7 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         // Cari user berdasarkan email
-        $user = User::where('email', $credentials['email'])->first();
+        $user = User::where('email', $credentials['email'])->orWhere('name', $credentials['email'])->first();
 
         // Cek jika user tidak ditemukan atau password salah
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
